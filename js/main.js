@@ -23,6 +23,67 @@ styleElement.textContent = `
 `;
 document.head.append(styleElement);
 
+document.querySelectorAll("header nav[aria-label]").forEach((navigation, index) => {
+  const header = navigation.closest("header");
+  const logo = header?.querySelector(":scope > a:first-child");
+  if (!header || !logo) return;
+
+  const isFrench = document.documentElement.lang.toLowerCase().startsWith("fr");
+  const button = document.createElement("button");
+  const buttonId = `mobile-nav-toggle-${index}`;
+  button.className = "mobile-nav-toggle";
+  button.type = "button";
+  button.id = buttonId;
+  button.setAttribute("aria-label", isFrench ? "Ouvrir le menu" : "Open menu");
+  button.setAttribute("aria-expanded", "false");
+  button.setAttribute("aria-controls", navigation.id || `${buttonId}-links`);
+  navigation.id ||= `${buttonId}-links`;
+  button.innerHTML = '<span></span><span></span><span></span>';
+  logo.after(button);
+  header.classList.add("mobile-nav-ready");
+
+  const mobileViewport = window.matchMedia("(max-width: 48rem)");
+  let isOpen = false;
+  const updateMenuState = () => {
+    button.setAttribute("aria-expanded", String(isOpen && mobileViewport.matches));
+    button.setAttribute("aria-label", isFrench
+      ? isOpen && mobileViewport.matches ? "Fermer le menu" : "Ouvrir le menu"
+      : isOpen && mobileViewport.matches ? "Close menu" : "Open menu");
+    if (mobileViewport.matches) {
+      header.dataset.mobileNavOpen = String(isOpen);
+      navigation.setAttribute("aria-hidden", String(!isOpen));
+      navigation.inert = !isOpen;
+    } else {
+      delete header.dataset.mobileNavOpen;
+      navigation.removeAttribute("aria-hidden");
+      navigation.inert = false;
+    }
+  };
+
+  button.addEventListener("click", () => {
+    isOpen = !isOpen;
+    updateMenuState();
+  });
+  navigation.addEventListener("click", (event) => {
+    if (event.target.closest("a")) {
+      isOpen = false;
+      updateMenuState();
+    }
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && isOpen && mobileViewport.matches) {
+      isOpen = false;
+      updateMenuState();
+      button.focus();
+    }
+  });
+  mobileViewport.addEventListener("change", () => {
+    isOpen = false;
+    updateMenuState();
+  });
+  updateMenuState();
+});
+
 const getTodayString = () => {
   const today = new Date();
   return [today.getFullYear(), String(today.getMonth() + 1).padStart(2, "0"), String(today.getDate()).padStart(2, "0")].join("-");

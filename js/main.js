@@ -858,6 +858,13 @@ interactiveElements.forEach((element) => element.classList.add("mgh-interactive"
 const revealElements = new Set(
   document.querySelectorAll("main > section:not(.hero), main > section > ul > li, .about-section, .testimonial-card, [data-testimonial-panel]"),
 );
+const currentPage = window.location.pathname.split("/").pop();
+const roomSection = currentPage === "chambres.html"
+  ? document.querySelector("#nos-chambres")
+  : currentPage === "rooms.html"
+    ? document.querySelector("#rooms")
+    : null;
+if (roomSection) revealElements.delete(roomSection);
 revealElements.forEach((element) => element.classList.add("mgh-reveal"));
 
 if (prefersReducedMotion.matches) {

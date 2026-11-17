@@ -52,7 +52,7 @@
         <h1 id="titre-principal">Contactez Mary’s Guest House</h1>
         <p>Une question, une réservation ou besoin d’informations ? Notre équipe est à votre écoute.</p>
         <div class="hero__actions">
-          <a href="https://wa.me/22893541512?text=Bonjour%2C%20je%20souhaite%20obtenir%20des%20informations%20concernant%20la%20r%C3%A9servation%20d%27une%20chambre.">Réserver maintenant</a>
+          <a href="#reservation-request">Réserver maintenant</a>
           <a href="#contact-message">Nous contacter</a>
         </div>
       </div>
@@ -107,24 +107,8 @@
     <section id="reservation-request" aria-labelledby="titre-reservation">
       <p class="eyebrow">PRÉPARER VOTRE SÉJOUR</p>
       <h2 id="titre-reservation">Demande de réservation</h2>
-      <p>Remplissez le formulaire pour préparer votre demande. L’envoi se poursuit dans WhatsApp : vérifiez le message puis appuyez sur « Envoyer ». Notre équipe devra confirmer les disponibilités et votre réservation.</p>
-      <form class="reservation-form" data-reservation-form data-language="fr">
-        <div class="reservation-form__field">
-          <label for="reservation-name">Nom complet</label>
-          <input id="reservation-name" name="name" type="text" autocomplete="name" required>
-        </div>
-        <div class="reservation-form__field">
-          <label for="reservation-email">Adresse e-mail</label>
-          <input id="reservation-email" name="email" type="email" autocomplete="email" required>
-        </div>
-        <div class="reservation-form__field">
-          <label for="reservation-phone">Numéro de téléphone</label>
-          <input id="reservation-phone" name="phone" type="tel" autocomplete="tel" required>
-        </div>
-        <div class="reservation-form__field">
-          <label for="reservation-guests">Nombre de personnes</label>
-          <input id="reservation-guests" name="guests" type="number" min="1" step="1" required>
-        </div>
+      <p>Choisissez vos dates puis consultez nos chambres. La disponibilité sera confirmée par l’établissement.</p>
+      <form class="reservation-form" action="chambres.html" method="get" data-room-search-form data-language="fr">
         <div class="reservation-form__field">
           <label for="reservation-arrival">Date d’arrivée</label>
           <input id="reservation-arrival" name="arrivalDate" type="date" required>
@@ -133,28 +117,8 @@
           <label for="reservation-departure">Date de départ</label>
           <input id="reservation-departure" name="departureDate" type="date" required>
         </div>
-        <div class="reservation-form__field">
-          <label for="reservation-room-type">Type de chambre souhaité</label>
-          <select id="reservation-room-type" name="roomType" required>
-            <option value="Aucune préférence">Aucune préférence — selon disponibilité</option>
-          </select>
-        </div>
-        <div class="reservation-form__field">
-          <label for="reservation-rooms">Nombre de chambres</label>
-          <input id="reservation-rooms" name="rooms" type="number" min="1" step="1" value="1" required>
-        </div>
-        <div class="reservation-form__field reservation-form__field--wide">
-          <label for="reservation-message">Message ou demandes particulières <span>(facultatif)</span></label>
-          <textarea id="reservation-message" name="message" rows="4"></textarea>
-        </div>
-        <div class="reservation-form__field reservation-form__field--wide">
-          <label for="reservation-consent">
-            <input id="reservation-consent" name="consent" type="checkbox" required style="width: auto; min-height: auto; margin-right: 0.5rem;">
-            J’accepte que les informations fournies soient utilisées pour traiter ma demande.
-          </label>
-        </div>
         <div class="reservation-form__actions">
-          <button type="submit">Continuer dans WhatsApp</button>
+          <button type="submit">Voir les chambres disponibles</button>
         </div>
       </form>
 

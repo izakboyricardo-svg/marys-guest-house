@@ -440,6 +440,102 @@ main > section[aria-labelledby="conference-gallery-heading"] li p {
   font-size: 0.94rem;
 }
 
+.room-search-status {
+  margin: 0 auto 1rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-small);
+  color: var(--color-white);
+  background: var(--color-surface);
+  text-align: center;
+}
+
+.room-booking-info {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0.85rem 0.35rem 1rem;
+  padding: 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-small);
+  background: var(--color-surface);
+}
+
+.room-booking-info p {
+  margin: 0;
+  font-size: 0.88rem;
+}
+
+.room-booking-info__rate,
+.room-booking-info__total {
+  color: var(--color-champagne);
+  font-weight: 700;
+}
+
+.room-booking-info__total {
+  font-size: 1.08rem;
+}
+
+.room-cta.is-disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.booking-summary__title {
+  margin: 0 0 0.6rem;
+  color: var(--color-white);
+  font-weight: 700;
+}
+
+.booking-summary {
+  display: grid;
+  gap: 0.55rem;
+  margin: 0;
+  padding: 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-small);
+  background: var(--color-surface);
+}
+
+.booking-summary > div {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+}
+
+.booking-summary dt {
+  color: var(--color-muted);
+}
+
+.booking-summary dd {
+  margin: 0;
+  color: var(--color-white);
+  font-weight: 650;
+  text-align: right;
+}
+
+.booking-summary__total {
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.booking-summary__total dd {
+  color: var(--color-champagne);
+  font-size: 1.12rem;
+}
+
+.booking-form__notice {
+  grid-column: 1 / -1;
+  padding: 0.85rem 1rem;
+  border-left: 3px solid var(--color-champagne);
+  background: rgb(198 161 91 / 12%);
+}
+
+.booking-form__notice[data-state="info"] {
+  border-left-color: #b65c57;
+}
+
 main > section[aria-labelledby="titre-chambres"] > a,
 main > section[aria-labelledby="rooms-heading"] > a,
 main > section[aria-labelledby="titre-restaurant"] > a,

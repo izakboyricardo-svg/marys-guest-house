@@ -109,7 +109,7 @@
           <ul class="room-amenities" aria-label="Confirmed amenities">
             <li>Air conditioning</li><li>Wi-Fi</li><li>Hot water</li><li>Television</li>
           </ul>
-          <a class="room-cta" href="https://wa.me/22893541512?text=Hello%2C%20I%20would%20like%20to%20send%20a%20room%20reservation%20request." aria-label="Send a room reservation request on WhatsApp">Request a booking</a>
+          <a class="room-cta" href="rooms.html?room=room-201#reservation-request" aria-label="Prepare a booking request for this room">Request a booking</a>
         </li>
         <li>
           <img src="../assets/images/restaurant-salades-composees-01.jpg" alt="Guest room with a bed and desk" width="809" height="1080" loading="lazy" decoding="async">
@@ -119,7 +119,7 @@
           <ul class="room-amenities" aria-label="Confirmed amenities">
             <li>Air conditioning</li><li>Wi-Fi</li><li>Hot water</li><li>Television</li>
           </ul>
-          <a class="room-cta" href="https://wa.me/22893541512?text=Hello%2C%20I%20would%20like%20to%20send%20a%20room%20reservation%20request." aria-label="Send a room reservation request on WhatsApp">Request a booking</a>
+          <a class="room-cta" href="rooms.html?room=room-207#reservation-request" aria-label="Prepare a booking request for this room">Request a booking</a>
         </li>
         <li>
           <img src="../assets/images/chambre-lit-bureau-03.jpg" alt="Guest room with a bed and desk" width="1536" height="1024" loading="lazy" decoding="async">
@@ -129,7 +129,7 @@
           <ul class="room-amenities" aria-label="Confirmed amenities">
             <li>Air conditioning</li><li>Hot water</li><li>Wi-Fi</li><li>Television</li>
           </ul>
-          <a class="room-cta" href="https://wa.me/22893541512?text=Hello%2C%20I%20would%20like%20to%20send%20a%20room%20reservation%20request." aria-label="Send a room reservation request on WhatsApp">Request a booking</a>
+          <a class="room-cta" href="rooms.html?room=room-211#reservation-request" aria-label="Prepare a booking request for this room">Request a booking</a>
         </li>
       </ul>
       <a href="rooms.html">View the rooms page</a>
@@ -240,49 +240,18 @@
 
  <section id="reservation-request" aria-labelledby="reservation-heading">
       <h2 id="reservation-heading">Reservation request</h2>
-      <p>Fill out this form to send your request to the property. Your reservation will not be confirmed automatically.</p>
-      <form class="reservation-form" data-reservation-form data-language="en">
+      <p>Select your dates to browse our rooms. Availability will be confirmed by the property.</p>
+      <form class="reservation-form" action="rooms.html" method="get" data-room-search-form data-language="en">
         <div class="reservation-form__field">
-          <label for="reservation-name">Full name</label>
-          <input id="reservation-name" name="name" type="text" autocomplete="name" required>
-        </div>
-        <div class="reservation-form__field">
-          <label for="reservation-email">Email address</label>
-          <input id="reservation-email" name="email" type="email" autocomplete="email" required>
+          <label for="reservation-arrival">Check-in date</label>
+          <input id="reservation-arrival" name="arrivalDate" type="date" required>
         </div>
         <div class="reservation-form__field">
-          <label for="reservation-phone">Phone number</label>
-          <input id="reservation-phone" name="phone" type="tel" autocomplete="tel" required>
-        </div>
-        <div class="reservation-form__field">
-          <label for="reservation-type">Request type</label>
-          <select id="reservation-type" name="requestType" required>
-            <option value="room">Room reservation</option>
-            <option value="table">Restaurant table reservation</option>
-          </select>
-        </div>
-        <div class="reservation-form__field">
-          <label for="reservation-date">Preferred date</label>
-          <input id="reservation-date" name="date" type="date" required>
-        </div>
-        <div class="reservation-form__field" data-request-field="time" hidden>
-          <label for="reservation-time">Preferred time</label>
-          <input id="reservation-time" name="time" type="time">
-        </div>
-        <div class="reservation-form__field" data-request-field="people" hidden>
-          <label for="reservation-people">Number of people</label>
-          <input id="reservation-people" name="people" type="number" min="1" step="1">
-        </div>
-        <div class="reservation-form__field" data-request-field="rooms">
-          <label for="reservation-rooms">Number of rooms</label>
-          <input id="reservation-rooms" name="rooms" type="number" min="1" step="1" value="1" required>
-        </div>
-        <div class="reservation-form__field reservation-form__field--wide">
-          <label for="reservation-message">Additional message <span>(optional)</span></label>
-          <textarea id="reservation-message" name="message" rows="4"></textarea>
+          <label for="reservation-departure">Check-out date</label>
+          <input id="reservation-departure" name="departureDate" type="date" required>
         </div>
         <div class="reservation-form__actions">
-          <button type="submit">Send my request</button>
+          <button type="submit">Check Availability</button>
         </div>
       </form>
     </section>

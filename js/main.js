@@ -12,12 +12,6 @@ styleElement.textContent = `
     @keyframes mgh-spin { to { transform: rotate(360deg); } }
     @keyframes mgh-enter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
   }
-  .mgh-form-message { margin: .75rem 0; padding: .7rem .9rem; border-left: 3px solid #c6a15b; color: inherit; background: rgb(198 161 91 / 12%); }
-  .mgh-form-message[data-state="error"] { border-left-color: #b65c57; }
-  .mgh-summary { margin: 1rem 0; padding: 1rem; border: 1px solid currentColor; border-radius: .5rem; }
-  .mgh-summary h3 { margin-top: 0; }
-  .mgh-summary ul { margin-bottom: 0; }
-  .mgh-summary button { margin: .75rem .5rem 0 0; }
   .mgh-toast { position: fixed; z-index: 1100; right: 1rem; bottom: 1rem; max-width: min(28rem, calc(100vw - 2rem)); padding: .85rem 1rem; border: 1px solid currentColor; border-radius: .5rem; color: #f5f7fa; background: #102a43; box-shadow: 0 8px 24px rgb(0 0 0 / 24%); }
   @media (prefers-reduced-motion: reduce) { .mgh-reveal { opacity: 1 !important; transform: none !important; } }
 `;
@@ -89,30 +83,6 @@ const getTodayString = () => {
   return [today.getFullYear(), String(today.getMonth() + 1).padStart(2, "0"), String(today.getDate()).padStart(2, "0")].join("-");
 };
 
-const getFormMessage = (form) => {
-  let message = form.querySelector("[data-form-message]");
-  if (!message) {
-    message = document.createElement("p");
-    message.className = "mgh-form-message";
-    message.dataset.formMessage = "";
-    message.setAttribute("role", "status");
-    message.setAttribute("aria-live", "polite");
-    form.append(message);
-  }
-  return message;
-};
-
-const getReservationFieldError = (form, field) => {
-  const labels = getReservationLabels(form);
-  if (field.validity.customError) return field.validationMessage;
-  if (field.type === "checkbox" && field.validity.valueMissing) return labels.consent;
-  if (field.validity.valueMissing) return labels.required;
-  if (field.validity.typeMismatch && field.type === "email") return labels.emailError;
-  if (field.validity.rangeUnderflow && field.type === "date") return labels.past;
-  if (field.validity.rangeUnderflow || field.validity.badInput || field.validity.stepMismatch) return labels.number;
-  return labels.invalid;
-};
-
 const showToast = (message) => {
   let toast = document.querySelector("[data-mgh-toast]");
   if (!toast) {
@@ -178,77 +148,6 @@ const setDisclosure = (element, isOpen) => {
   };
 };
 
-const getReservationLabels = (form) => form.dataset.language === "fr"
-  ? {
-      title: "Demande de réservation — Mary’s Guest House", name: "Nom complet", email: "Adresse e-mail", phone: "Téléphone",
-      arrival: "Date d’arrivée", departure: "Date de départ", guests: "Nombre de personnes", roomType: "Type de chambre souhaité",
-      rooms: "Nombre de chambres", date: "Date souhaitée", time: "Heure souhaitée", message: "Message complémentaire",
-      nights: "Nuits", price: "Montant estimatif", toConfirm: "Tarif à confirmer par l’établissement.",
-      review: "Vérifiez votre récapitulatif avant de continuer.", confirm: "Continuer vers WhatsApp", edit: "Modifier ma demande",
-      invalid: "Vérifiez les champs signalés avant de continuer.", dates: "La date de départ doit être postérieure à la date d’arrivée.",
-      required: "Ce champ est obligatoire.", emailError: "Saisissez une adresse e-mail valide.", consent: "Veuillez accepter le consentement avant de continuer.",
-      past: "Choisissez une date qui n’est pas passée.", number: "Saisissez un nombre entier supérieur à zéro.",
-      opening: "Ouverture de WhatsApp…", noConfirmation: "Envoyez la demande dans WhatsApp. L’établissement devra confirmer les disponibilités.",
-    }
-  : {
-      title: "Reservation request — Mary’s Guest House", name: "Full name", email: "Email address", phone: "Phone",
-      arrival: "Check-in date", departure: "Check-out date", guests: "Number of guests", roomType: "Preferred room type",
-      rooms: "Number of rooms", date: "Preferred date", time: "Preferred time", message: "Additional message",
-      nights: "Nights", price: "Estimated amount", toConfirm: "Rate to be confirmed by the property.",
-      review: "Review your request before continuing.", confirm: "Continue to WhatsApp", edit: "Edit my request",
-      invalid: "Please check the fields marked below before continuing.", dates: "Check-out must be after check-in.",
-      required: "This field is required.", emailError: "Enter a valid email address.", consent: "Please accept the consent before continuing.",
-      past: "Choose a date that is not in the past.", number: "Enter a whole number greater than zero.",
-      opening: "Opening WhatsApp…", noConfirmation: "Send the request in WhatsApp. The property must confirm availability.",
-    };
-
-const validateReservation = (form, report = true) => {
-  const labels = getReservationLabels(form);
-  const today = getTodayString();
-  const arrival = form.querySelector('[name="arrivalDate"]');
-  const departure = form.querySelector('[name="departureDate"]');
-  const singleDate = form.querySelector('[name="date"]');
-  const people = form.querySelector('[name="guests"], [name="people"]');
-  const rooms = form.querySelector('[name="rooms"]');
-
-  if (arrival && departure) {
-    arrival.min = today;
-    departure.min = arrival.value || today;
-    arrival.setCustomValidity(arrival.value && arrival.value < today ? labels.past : "");
-    departure.setCustomValidity(
-      departure.value && departure.value < today
-        ? labels.past
-        : departure.value && arrival.value && departure.value <= arrival.value
-          ? labels.dates
-          : "",
-    );
-  }
-  if (singleDate) {
-    singleDate.min = today;
-    singleDate.setCustomValidity(singleDate.value && singleDate.value < today ? labels.past : "");
-  }
-  [people, rooms].filter(Boolean).forEach((input) => {
-    const isVisible = !input.closest("[hidden]");
-    const valid = !isVisible || (Number.isInteger(Number(input.value)) && Number(input.value) > 0);
-    input.setCustomValidity(valid ? "" : labels.number);
-  });
-
-  const isValid = report
-    ? form.checkValidity()
-    : [...form.elements].every((field) => !field.willValidate || field.validity.valid);
-  if (!isValid) {
-    if (!report) return false;
-    const invalidField = [...form.elements].find((field) => field.willValidate && !field.checkValidity());
-    const message = getFormMessage(form);
-    message.dataset.state = "error";
-    message.textContent = invalidField?.validationMessage || labels.invalid;
-    invalidField?.focus();
-    form.reportValidity();
-    return false;
-  }
-  return true;
-};
-
 const getNightCount = (arrival, departure) => {
   if (!arrival || !departure) return 0;
   const [arrivalYear, arrivalMonth, arrivalDay] = arrival.split("-").map(Number);
@@ -256,206 +155,327 @@ const getNightCount = (arrival, departure) => {
   return (Date.UTC(departureYear, departureMonth - 1, departureDay) - Date.UTC(arrivalYear, arrivalMonth - 1, arrivalDay)) / 86400000;
 };
 
-const getReservationSummary = (form) => {
-  const values = new FormData(form);
-  const labels = getReservationLabels(form);
+const accommodationPricing = {
+  standard: { nightlyRate: 35000, rateType: "from", capacity: null, promotionPercent: 0 },
+  vip: { nightlyRate: 50000, rateType: "fixed", capacity: null, promotionPercent: 0 },
+  apartment: { nightlyRate: 40000, rateType: "fixed", capacity: 3, promotionPercent: 0 },
+};
+
+const accommodationAvailabilityStates = ["unverified", "available", "unavailable", "occupied", "pending", "reserved"];
+
+const getStayQuote = (pricing, arrival, departure) => {
+  const nights = getNightCount(arrival, departure);
+  if (!pricing || nights <= 0) return null;
+
+  const subtotal = pricing.nightlyRate * nights;
+  const discount = Math.round(subtotal * (pricing.promotionPercent || 0) / 100);
+  return { nights, subtotal, discount, total: subtotal - discount };
+};
+
+const formatRoomPrice = (amount, isFrench) =>
+  `${new Intl.NumberFormat(isFrench ? "fr-FR" : "en-GB").format(amount)} FCFA`;
+
+document.querySelectorAll("[data-room-search-form]").forEach((form) => {
+  const arrival = form.querySelector('[name="arrivalDate"]');
+  const departure = form.querySelector('[name="departureDate"]');
+  if (!arrival || !departure) return;
   const isFrench = form.dataset.language === "fr";
-  const rows = [];
-  const addRow = (label, value) => {
-    if (value) rows.push(`${label} : ${value}`);
+
+  const updateDateConstraints = () => {
+    arrival.min = getTodayString();
+    departure.min = arrival.value || getTodayString();
+    departure.setCustomValidity(
+      departure.value && arrival.value && departure.value <= arrival.value
+        ? isFrench
+          ? "La date de départ doit être postérieure à la date d’arrivée."
+          : "The check-out date must be after the check-in date."
+        : "",
+    );
   };
-  addRow(labels.name, values.get("name")?.toString().trim());
-  addRow(labels.email, values.get("email")?.toString().trim());
-  addRow(labels.phone, values.get("phone")?.toString().trim());
 
-  const requestType = values.get("requestType")?.toString();
-  if (requestType) {
-    const typeLabels = isFrench
-      ? { room: "Réservation d’une chambre", table: "Réservation d’une table au restaurant" }
-      : { room: "Room reservation", table: "Restaurant table reservation" };
-    addRow(isFrench ? "Type de demande" : "Request type", typeLabels[requestType] || requestType);
-  }
-
-  const arrival = values.get("arrivalDate")?.toString();
-  const departure = values.get("departureDate")?.toString();
-  const singleDate = values.get("date")?.toString();
-  const dateFormatter = new Intl.DateTimeFormat(isFrench ? "fr-FR" : "en-GB", { dateStyle: "long", timeZone: "UTC" });
-  if (arrival && departure) {
-    addRow(labels.arrival, dateFormatter.format(new Date(`${arrival}T00:00:00Z`)));
-    addRow(labels.departure, dateFormatter.format(new Date(`${departure}T00:00:00Z`)));
-    const nights = getNightCount(arrival, departure);
-    addRow(labels.nights, `${nights} ${labels.nights.toLowerCase()}`);
-    const roomType = form.querySelector('[name="roomType"]');
-    const rate = Number(roomType?.selectedOptions[0]?.dataset.pricePerNight);
-    const roomCount = Number(values.get("rooms") || 1);
-    if (Number.isFinite(rate) && rate > 0) {
-      const currency = form.dataset.currency || "XOF";
-      const amount = new Intl.NumberFormat(isFrench ? "fr-FR" : "en-GB", { style: "currency", currency, maximumFractionDigits: 0 }).format(rate * nights * roomCount);
-      addRow(labels.price, amount);
-    } else {
-      addRow(labels.price, labels.toConfirm);
-    }
-  } else if (singleDate) {
-    addRow(labels.date, dateFormatter.format(new Date(`${singleDate}T00:00:00Z`)));
-  }
-
-  addRow(labels.roomType, values.get("roomType")?.toString());
-  addRow(labels.guests, values.get("guests")?.toString() || values.get("people")?.toString());
-  if (requestType !== "table") addRow(labels.rooms, values.get("rooms")?.toString());
-  addRow(labels.time, values.get("time")?.toString());
-  addRow(labels.message, values.get("message")?.toString().trim());
-  return rows;
-};
-
-const buildReservationUrl = (form) => {
-  const labels = getReservationLabels(form);
-  const lines = [labels.title, "", ...getReservationSummary(form)];
-  const whatsappUrl = new URL("https://wa.me/22893541512");
-  whatsappUrl.searchParams.set("text", lines.join("\n"));
-  return whatsappUrl;
-};
-
-const createReservationSummary = (form) => {
-  let summary = form.querySelector("[data-reservation-summary]");
-  if (!summary) {
-    summary = document.createElement("section");
-    summary.className = "mgh-summary";
-    summary.dataset.reservationSummary = "";
-    const heading = document.createElement("h3");
-    heading.textContent = form.dataset.language === "fr" ? "Récapitulatif" : "Request summary";
-    const list = document.createElement("ul");
-    const continueButton = document.createElement("button");
-    continueButton.type = "submit";
-    continueButton.dataset.confirmReservation = "";
-    const editButton = document.createElement("button");
-    editButton.type = "button";
-    editButton.dataset.editReservation = "";
-    editButton.textContent = getReservationLabels(form).edit;
-    summary.append(heading, list, continueButton, editButton);
-    const actions = form.querySelector(".reservation-form__actions");
-    form.insertBefore(summary, actions || null);
-    editButton.addEventListener("click", () => {
-      form.dataset.reviewing = "false";
-      setDisclosure(summary, false);
-      const submitButton = form.querySelector('.reservation-form__actions button[type="submit"]');
-      if (submitButton) submitButton.textContent = submitButton.dataset.defaultLabel || submitButton.textContent;
-      getFormMessage(form).textContent = "";
-    });
-  }
-
-  const list = summary.querySelector("ul");
-  list.replaceChildren();
-  getReservationSummary(form).forEach((row) => {
-    const item = document.createElement("li");
-    item.textContent = row;
-    list.append(item);
+  [arrival, departure].forEach((field) => {
+    field.addEventListener("input", updateDateConstraints);
+    field.addEventListener("change", updateDateConstraints);
   });
-  const continueButton = summary.querySelector("[data-confirm-reservation]");
-  continueButton.textContent = getReservationLabels(form).confirm;
-  setDisclosure(summary, true);
-  summary.classList.add("mgh-summary");
-  form.dataset.reviewing = "true";
-  const submitButton = form.querySelector('.reservation-form__actions button[type="submit"]');
-  if (submitButton) {
-    submitButton.dataset.defaultLabel ||= submitButton.textContent;
-    submitButton.textContent = getReservationLabels(form).confirm;
-  }
-};
-
-const handleReservationSubmit = (form, event) => {
-  event.preventDefault();
-  if (form.dataset.submitting === "true") return;
-
-  const labels = getReservationLabels(form);
-  if (!validateReservation(form)) {
-    form.dataset.reviewing = "false";
-    return;
-  }
-
-  if (form.dataset.reviewing !== "true") {
-    createReservationSummary(form);
-    const message = getFormMessage(form);
-    message.dataset.state = "info";
-    message.textContent = labels.review;
-    showToast(labels.review);
-    return;
-  }
-
-  const url = buildReservationUrl(form);
-  setLoading(form, true, labels.opening);
-  getFormMessage(form).textContent = labels.noConfirmation;
-  showToast(labels.noConfirmation);
-  window.location.assign(url);
-};
-
-const reservationForms = document.querySelectorAll("[data-reservation-form]");
-
-reservationForms.forEach((form) => {
-  form.addEventListener("invalid", (event) => {
-    if (form.dataset.invalidMessageSet === "true") return;
-    form.dataset.invalidMessageSet = "true";
-    const message = getFormMessage(form);
-    message.dataset.state = "error";
-    message.textContent = getReservationFieldError(form, event.target);
-    queueMicrotask(() => delete form.dataset.invalidMessageSet);
-  }, true);
-
-  const arrivalDate = form.querySelector('[name="arrivalDate"]');
-  const departureDate = form.querySelector('[name="departureDate"]');
-  const singleDate = form.querySelector('[name="date"]');
-  const dateFields = [arrivalDate, departureDate, singleDate].filter(Boolean);
-
-  dateFields.forEach((dateField) => {
-    dateField.min = getTodayString();
-    dateField.addEventListener("input", () => {
-      validateReservation(form, false);
-      form.dataset.reviewing = "false";
-    });
-    dateField.addEventListener("change", () => {
-      validateReservation(form, false);
-      form.dataset.reviewing = "false";
-    });
-  });
-
-  const typeSelect = form.querySelector('[name="requestType"]');
-  const timeField = form.querySelector('[data-request-field="time"]');
-  const peopleField = form.querySelector('[data-request-field="people"]');
-  const roomsField = form.querySelector('[data-request-field="rooms"]');
-  if (typeSelect && timeField && peopleField && roomsField) {
-    const fieldsByType = { room: [roomsField], table: [timeField, peopleField] };
-    const updateRequestFields = () => {
-      const visibleFields = fieldsByType[typeSelect.value] ?? fieldsByType.room;
-      [timeField, peopleField, roomsField].forEach((field) => {
-        const isVisible = visibleFields.includes(field);
-        const input = field.querySelector("input");
-        field.hidden = !isVisible;
-        input.required = isVisible;
-      });
-      form.dataset.reviewing = "false";
-    };
-    typeSelect.addEventListener("change", updateRequestFields);
-    updateRequestFields();
-  }
-
-  form.addEventListener("input", (event) => {
-    if (event.target.matches('input[type="number"]')) validateReservation(form, false);
-    const message = form.querySelector("[data-form-message]");
-    const formIsValid = [...form.elements].every((field) => !field.willValidate || field.validity.valid);
-    if (message?.dataset.state === "error" && formIsValid) {
-      message.textContent = "";
-      delete message.dataset.state;
-    }
-    if (form.dataset.reviewing === "true" && !event.target.matches("[data-confirm-reservation]")) {
-      form.dataset.reviewing = "false";
-      const summary = form.querySelector("[data-reservation-summary]");
-      if (summary) setDisclosure(summary, false);
-      const submitButton = form.querySelector('.reservation-form__actions button[type="submit"]');
-      if (submitButton?.dataset.defaultLabel) submitButton.textContent = submitButton.dataset.defaultLabel;
-    }
-  });
-
-  form.addEventListener("submit", (event) => handleReservationSubmit(form, event));
+  form.addEventListener("submit", updateDateConstraints);
+  updateDateConstraints();
 });
+
+const isRoomListingPage = /(?:^|\/)(?:chambres|rooms)\.html$/.test(window.location.pathname);
+const roomListingSection = isRoomListingPage
+  ? document.querySelector("#nos-chambres, #rooms")
+  : null;
+
+if (roomListingSection) {
+  const isFrench = document.documentElement.lang.toLowerCase().startsWith("fr");
+  const query = new URLSearchParams(window.location.search);
+  const arrival = query.get("arrivalDate") || "";
+  const departure = query.get("departureDate") || "";
+  const isValidDate = (value) => {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+    const date = new Date(`${value}T00:00:00Z`);
+    return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
+  };
+  const hasValidStay = isValidDate(arrival)
+    && isValidDate(departure)
+    && arrival >= getTodayString()
+    && departure > arrival;
+  const dateFormatter = new Intl.DateTimeFormat(isFrench ? "fr-FR" : "en-GB", {
+    dateStyle: "long",
+    timeZone: "UTC",
+  });
+  const formattedArrival = hasValidStay
+    ? dateFormatter.format(new Date(`${arrival}T00:00:00Z`))
+    : "";
+  const formattedDeparture = hasValidStay
+    ? dateFormatter.format(new Date(`${departure}T00:00:00Z`))
+    : "";
+  const nights = hasValidStay ? getNightCount(arrival, departure) : 0;
+  const bookingForm = document.querySelector("[data-booking-form]");
+  const roomSelect = bookingForm?.querySelector('[name="roomId"]');
+  const stayStatus = document.createElement("p");
+  stayStatus.className = "room-search-status";
+  stayStatus.setAttribute("role", "status");
+  stayStatus.setAttribute("aria-live", "polite");
+  stayStatus.textContent = hasValidStay
+    ? isFrench
+      ? `Dates demandées : du ${formattedArrival} au ${formattedDeparture} (${nights} nuit${nights > 1 ? "s" : ""}). Les tarifs affichés sont estimatifs ; la disponibilité doit être confirmée par l’établissement.`
+      : `Requested dates: ${formattedArrival} to ${formattedDeparture} (${nights} night${nights > 1 ? "s" : ""}). Rates are estimates; availability must be confirmed by the property.`
+    : isFrench
+      ? "Choisissez vos dates sur la page d’accueil pour estimer le coût du séjour. La disponibilité doit être confirmée par l’établissement."
+      : "Choose your dates on the home page to estimate your stay. Availability must be confirmed by the property.";
+  const roomCards = roomListingSection.querySelectorAll(":scope > ul > li");
+  const labels = isFrench
+    ? {
+        standardRate: "À partir de",
+        perNight: "nuit",
+        vipRate: "nuit",
+        nights: "Nuitées",
+        subtotal: "Sous-total estimatif",
+        discount: "Réduction",
+        total: "Total estimatif",
+        unverified: "Disponibilité à confirmer par l’établissement",
+        available: "Disponible (statut de démonstration, à confirmer)",
+        unavailable: "Indisponible",
+        occupied: "Déjà occupée",
+        pending: "Demande en attente",
+        reserved: "Réservée",
+        rateUnknown: "Tarif à confirmer",
+        selectRoom: "Choisir un hébergement",
+        bookingButton: "Réserver cette chambre",
+      }
+    : {
+        standardRate: "From",
+        perNight: "night",
+        vipRate: "night",
+        nights: "Nights",
+        subtotal: "Estimated subtotal",
+        discount: "Discount",
+        total: "Estimated total",
+        unverified: "Availability to be confirmed by the property",
+        available: "Available (demo status, subject to confirmation)",
+        unavailable: "Unavailable",
+        occupied: "Already occupied",
+        pending: "Request pending",
+        reserved: "Reserved",
+        rateUnknown: "Rate to be confirmed",
+        selectRoom: "Choose an accommodation",
+        bookingButton: "Book This Room",
+      };
+  const roomEntries = [];
+
+  if (roomSelect) {
+    roomSelect.replaceChildren(new Option(labels.selectRoom, ""));
+  }
+
+  const appendInfo = (container, text, className = "") => {
+    const paragraph = document.createElement("p");
+    paragraph.className = className;
+    paragraph.textContent = text;
+    container.append(paragraph);
+  };
+
+  const roomList = roomListingSection.querySelector(":scope > ul");
+  if (roomList) roomListingSection.insertBefore(stayStatus, roomList);
+
+  roomCards.forEach((card, index) => {
+    const heading = card.querySelector("h3");
+    const description = heading?.nextElementSibling;
+    const bookingLink = card.querySelector(".room-cta");
+    if (!heading || !description || !bookingLink) return;
+    const roomName = heading.textContent.trim();
+    const pricingKey = card.dataset.pricingKey || (/\bVIP\b/i.test(roomName) ? "vip" : "standard");
+    const pricing = accommodationPricing[pricingKey];
+    const roomNumber = roomName.match(/\b(20[1-9]|21[0-2])\b/)?.[1];
+    const roomId = card.dataset.roomId || (roomNumber ? `room-${roomNumber}` : `room-${index + 1}`);
+    const availability = accommodationAvailabilityStates.includes(card.dataset.availability)
+      ? card.dataset.availability
+      : "unverified";
+    const cannotRequest = ["unavailable", "occupied", "pending", "reserved"].includes(availability);
+    const quote = hasValidStay ? getStayQuote(pricing, arrival, departure) : null;
+    const rateText = pricing.rateType === "from"
+      ? `${labels.standardRate} ${formatRoomPrice(pricing.nightlyRate, isFrench)} / ${labels.perNight}`
+      : `${formatRoomPrice(pricing.nightlyRate, isFrench)} / ${labels.vipRate}`;
+    const availabilityText = labels[availability] || labels.unverified;
+
+    let bookingInfo = card.querySelector("[data-room-booking-info]");
+    if (!bookingInfo) {
+      bookingInfo = document.createElement("div");
+      bookingInfo.className = "room-booking-info";
+      bookingInfo.dataset.roomBookingInfo = "";
+      description.after(bookingInfo);
+    }
+
+    bookingInfo.replaceChildren();
+    appendInfo(bookingInfo, rateText, "room-booking-info__rate");
+    if (pricing.capacity) {
+      appendInfo(bookingInfo, `${isFrench ? "Capacité" : "Capacity"} : ${pricing.capacity} ${isFrench ? "personnes" : "guests"}`);
+    }
+    if (quote) {
+      appendInfo(bookingInfo, `${labels.nights} : ${quote.nights}`);
+      appendInfo(bookingInfo, `${labels.total} : ${pricing.rateType === "from" ? `${isFrench ? "à partir de " : "from "}` : ""}${formatRoomPrice(quote.total, isFrench)}`, "room-booking-info__total");
+    } else {
+      appendInfo(bookingInfo, hasValidStay ? labels.rateUnknown : isFrench ? "Choisissez des dates pour calculer le total." : "Choose dates to calculate a total.");
+    }
+    appendInfo(bookingInfo, availabilityText);
+
+    bookingLink.textContent = labels.bookingButton;
+    bookingLink.href = "#reservation-request";
+    bookingLink.setAttribute("aria-disabled", String(cannotRequest));
+    if (cannotRequest) {
+      bookingLink.classList.add("is-disabled");
+      bookingLink.setAttribute("tabindex", "-1");
+    } else {
+      bookingLink.classList.remove("is-disabled");
+      bookingLink.removeAttribute("tabindex");
+    }
+
+    const room = { id: roomId, name: roomName, pricing, availability, cannotRequest, bookingLink };
+    roomEntries.push(room);
+    if (roomSelect && !cannotRequest) roomSelect.add(new Option(roomName, roomId));
+    bookingLink.addEventListener("click", (event) => {
+      event.preventDefault();
+      if (cannotRequest || !bookingForm || !roomSelect) return;
+      roomSelect.value = roomId;
+      if (hasValidStay) {
+        bookingForm.elements.arrivalDate.value = arrival;
+        bookingForm.elements.departureDate.value = departure;
+      }
+      bookingForm.elements.guests.value = "1";
+      bookingForm.elements.roomId.dispatchEvent(new Event("change", { bubbles: true }));
+      bookingForm.scrollIntoView({ behavior: prefersReducedMotion.matches ? "auto" : "smooth", block: "start" });
+      roomSelect.focus({ preventScroll: true });
+    });
+  });
+
+  if (bookingForm && roomSelect) {
+    const arrivalField = bookingForm.elements.arrivalDate;
+    const departureField = bookingForm.elements.departureDate;
+    const guestField = bookingForm.elements.guests;
+    const rateOutput = bookingForm.querySelector("[data-booking-rate]");
+    const nightsOutput = bookingForm.querySelector("[data-booking-nights]");
+    const subtotalOutput = bookingForm.querySelector("[data-booking-subtotal]");
+    const discountOutput = bookingForm.querySelector("[data-booking-discount]");
+    const totalOutput = bookingForm.querySelector("[data-booking-total]");
+    const summaryOutput = bookingForm.querySelector("[data-booking-summary]");
+    const statusOutput = bookingForm.querySelector("[data-booking-status]");
+    const formattedMoney = (value) => formatRoomPrice(value, isFrench);
+
+    const updateBookingSummary = () => {
+      const selectedRoom = roomEntries.find((room) => room.id === roomSelect.value);
+      const isValidStay = isValidDate(arrivalField.value)
+        && isValidDate(departureField.value)
+        && arrivalField.value >= getTodayString()
+        && departureField.value > arrivalField.value;
+      const quote = selectedRoom && isValidStay
+        ? getStayQuote(selectedRoom.pricing, arrivalField.value, departureField.value)
+        : null;
+      const nightsText = quote ? String(quote.nights) : "—";
+      const rateText = selectedRoom
+        ? `${selectedRoom.pricing.rateType === "from" ? `${labels.standardRate} ` : ""}${formattedMoney(selectedRoom.pricing.nightlyRate)} / ${labels.perNight}`
+        : "—";
+
+      if (rateOutput) rateOutput.textContent = rateText;
+      if (nightsOutput) nightsOutput.textContent = nightsText;
+      if (subtotalOutput) subtotalOutput.textContent = quote ? formattedMoney(quote.subtotal) : "—";
+      if (discountOutput) discountOutput.textContent = quote
+        ? quote.discount > 0 ? formattedMoney(quote.discount) : isFrench ? "Aucune promotion configurée" : "No promotion configured"
+        : "—";
+      if (totalOutput) totalOutput.textContent = quote
+        ? `${selectedRoom.pricing.rateType === "from" ? `${isFrench ? "À partir de " : "From "}` : ""}${formattedMoney(quote.total)}`
+        : "—";
+      if (summaryOutput) {
+        summaryOutput.textContent = selectedRoom && isValidStay
+          ? isFrench
+            ? `${selectedRoom.name} — du ${dateFormatter.format(new Date(`${arrivalField.value}T00:00:00Z`))} au ${dateFormatter.format(new Date(`${departureField.value}T00:00:00Z`))} — ${quote.nights} nuit${quote.nights > 1 ? "s" : ""}. Total estimatif : ${selectedRoom.pricing.rateType === "from" ? "à partir de " : ""}${formattedMoney(quote.total)}. Disponibilité non vérifiée.`
+            : `${selectedRoom.name} — ${dateFormatter.format(new Date(`${arrivalField.value}T00:00:00Z`))} to ${dateFormatter.format(new Date(`${departureField.value}T00:00:00Z`))} — ${quote.nights} night${quote.nights > 1 ? "s" : ""}. Estimated total: ${selectedRoom.pricing.rateType === "from" ? "from " : ""}${formattedMoney(quote.total)}. Availability not verified.`
+          : isFrench
+            ? "Sélectionnez un hébergement et des dates valides pour afficher le récapitulatif."
+            : "Select an accommodation and valid dates to view the summary.";
+      }
+      if (statusOutput && statusOutput.dataset.state !== "error") statusOutput.textContent = "";
+    };
+
+    const updateBookingDateConstraints = () => {
+      arrivalField.min = getTodayString();
+      departureField.min = arrivalField.value || getTodayString();
+      arrivalField.setCustomValidity(
+        arrivalField.value && arrivalField.value < getTodayString()
+          ? isFrench ? "La date d’arrivée ne peut pas être passée." : "The check-in date cannot be in the past."
+          : "",
+      );
+      departureField.setCustomValidity(
+        departureField.value && arrivalField.value && departureField.value <= arrivalField.value
+          ? isFrench
+            ? "La date de départ doit être postérieure à la date d’arrivée."
+            : "The check-out date must be after the check-in date."
+          : "",
+      );
+      updateBookingSummary();
+    };
+
+    if (hasValidStay) {
+      arrivalField.value = arrival;
+      departureField.value = departure;
+    }
+    [arrivalField, departureField].forEach((field) => {
+      field.addEventListener("input", updateBookingDateConstraints);
+      field.addEventListener("change", updateBookingDateConstraints);
+    });
+    [roomSelect, guestField].forEach((field) => {
+      field.addEventListener("input", updateBookingSummary);
+      field.addEventListener("change", updateBookingSummary);
+    });
+
+    const requestedRoom = query.get("room");
+    if (requestedRoom && roomEntries.some((room) => room.id === requestedRoom)) {
+      roomSelect.value = requestedRoom;
+    }
+    updateBookingDateConstraints();
+
+    bookingForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      updateBookingDateConstraints();
+      if (!bookingForm.reportValidity()) return;
+
+      const selectedRoom = roomEntries.find((room) => room.id === roomSelect.value);
+      if (!selectedRoom || selectedRoom.cannotRequest) {
+        roomSelect.setCustomValidity(isFrench
+          ? "Choisissez un hébergement pouvant recevoir une demande."
+          : "Choose an accommodation that can accept a request.");
+        roomSelect.reportValidity();
+        return;
+      }
+      roomSelect.setCustomValidity("");
+      if (statusOutput) {
+        statusOutput.dataset.state = "info";
+        statusOutput.textContent = isFrench
+          ? "Le service de réservation en ligne n’est pas encore connecté. Votre demande n’a pas été envoyée et aucune réservation n’a été confirmée."
+          : "The online booking service is not connected yet. Your request has not been sent and no reservation has been confirmed.";
+      }
+    });
+  }
+}
 
 document.querySelectorAll("[data-contact-form]").forEach((form) => {
   form.addEventListener("submit", (event) => {

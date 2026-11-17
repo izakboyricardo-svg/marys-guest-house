@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Réservation | Mary’s Guest House</title>
+  <meta name="description" content="Préparez votre demande de séjour à Mary’s Guest House à Lomé.">
+  <link rel="canonical" href="https://maryguesthouse.com/reservation.html">
+  <link rel="alternate" hreflang="fr-TG" href="https://maryguesthouse.com/reservation.html">
+  <link rel="alternate" hreflang="en-TG" href="https://maryguesthouse.com/en/booking.html">
+  <link rel="alternate" hreflang="x-default" href="https://maryguesthouse.com/reservation.html">
+  <meta property="og:title" content="Réservation | Mary’s Guest House">
+  <meta property="og:description" content="Préparez votre demande de séjour à Mary’s Guest House à Lomé.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://maryguesthouse.com/reservation.html">
+  <meta property="og:site_name" content="Mary’s Guest House">
+  <meta property="og:locale" content="fr_TG">
+  <meta property="og:locale:alternate" content="en_TG">
+  <link rel="stylesheet" href="css/styles.css">
+  <script src="js/config.js" defer></script>
+  <script src="js/countries.js" defer></script>
+  <script src="js/booking.js" defer></script>
+  <script src="js/main.js" defer></script>
+</head>
+<body>
+  <a href="#contenu-principal">Aller au contenu principal</a>
+  <header>
+    <a href="index.html" aria-label="Mary’s Guest House, accueil"><span>Mary’s Guest House</span></a>
+    <nav aria-label="Navigation principale">
+      <ul>
+        <li><a href="index.html">Accueil</a></li>
+        <li><a href="chambres.html">Chambres</a></li>
+        <li><a href="restaurant.html">Restaurant</a></li>
+        <li><a href="salle-conference.html">Salle de conférence</a></li>
+        <li><a href="galerie.html">Galerie</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+    </nav>
+    <a href="en/booking.html" lang="en" aria-label="Read this page in English">English</a>
+  </header>
+
+  <main id="contenu-principal" class="booking-page" data-reservation-page>
+    <section class="booking-intro" aria-labelledby="booking-title">
+      <p class="eyebrow">VOTRE SÉJOUR</p>
+      <h1 id="booking-title">Finaliser votre demande de réservation</h1>
+      <p>Vérifiez votre séjour, puis renseignez les informations nécessaires. La disponibilité sera confirmée par l’établissement.</p>
+      <p class="booking-status" data-reservation-status role="status" aria-live="polite"></p>
+    </section>
+
+    <div class="booking-layout">
+      <aside class="booking-summary-card" aria-labelledby="summary-heading">
+        <h2 id="summary-heading">Récapitulatif du séjour</h2>
+        <img data-summary-image alt="" loading="lazy" decoding="async" hidden>
+        <p class="booking-summary__title" data-summary-room>—</p>
+        <p data-summary-capacity></p>
+        <div class="reservation-form__field">
+          <label for="summary-arrival">Date d’arrivée</label>
+          <input id="summary-arrival" name="arrivalDate" type="date" form="reservation-form" required>
+        </div>
+        <div class="reservation-form__field">
+          <label for="summary-departure">Date de départ</label>
+          <input id="summary-departure" name="departureDate" type="date" form="reservation-form" required>
+        </div>
+        <dl class="booking-summary">
+          <div><dt>Nombre de nuits</dt><dd data-summary-nights>—</dd></div>
+          <div><dt>Prix par nuit</dt><dd data-summary-rate>—</dd></div>
+          <div class="booking-summary__total"><dt>Total estimatif</dt><dd data-summary-total>—</dd></div>
+        </dl>
+        <p class="booking-currency-note" data-currency-note hidden></p>
+      </aside>
+
+      <section class="booking-form-panel" data-reservation-form-panel aria-labelledby="form-heading">
+        <form class="reservation-form" id="reservation-form" data-reservation-form>
+          <select name="roomId" hidden tabindex="-1" aria-hidden="true"></select>
+          <section class="booking-form-section" aria-labelledby="form-heading">
+            <h2 id="form-heading">1. Séjour</h2>
+            <div class="reservation-form__field">
+              <label for="booking-adults">Adultes</label>
+              <input id="booking-adults" name="adults" type="number" min="1" step="1" value="1" required>
+            </div>
+            <div class="reservation-form__field">
+              <label for="booking-children">Enfants</label>
+              <input id="booking-children" name="children" type="number" min="0" step="1" value="0" required>
+            </div>
+            <div class="reservation-form__field">
+              <label for="booking-arrival-time">Heure d’arrivée estimée</label>
+              <input id="booking-arrival-time" name="arrivalTime" type="time">
+            </div>
+          </section>
+
+          <section class="booking-form-section" aria-labelledby="customer-heading">
+            <h2 id="customer-heading">2. Informations du client</h2>
+            <div class="reservation-form__field">
+              <label for="booking-first-name">Prénom</label>
+              <input id="booking-first-name" name="firstName" type="text" autocomplete="given-name" required>
+            </div>
+            <div class="reservation-form__field">
+              <label for="booking-last-name">Nom</label>
+              <input id="booking-last-name" name="lastName" type="text" autocomplete="family-name" required>
+            </div>
+            <div class="reservation-form__field reservation-form__field--wide">
+              <label for="booking-email">Adresse e-mail</label>
+              <input id="booking-email" name="email" type="email" autocomplete="email" required>
+            </div>
+            <div class="reservation-form__field reservation-form__field--wide">
+              <label for="booking-country">Pays / Nationalité</label>
+              <input id="booking-country" name="country" type="search" list="country-options" autocomplete="country-name" required>
+              <datalist id="country-options"></datalist>
+            </div>
+            <div class="reservation-form__field">
+              <label for="booking-dial-code">Indicatif</label>
+              <select id="booking-dial-code" name="dialCode" autocomplete="tel-country-code" required></select>
+            </div>
+            <div class="reservation-form__field">
+              <label for="booking-phone">Numéro de téléphone</label>
+              <input id="booking-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel-national" minlength="5" maxlength="24" required>
+            </div>
+          </section>
+
+          <section class="booking-form-section" aria-labelledby="requests-heading">
+            <h2 id="requests-heading">3. Demandes spéciales</h2>
+            <div class="reservation-form__field reservation-form__field--wide">
+              <label for="booking-requests">Demandes particulières <span>(facultatif)</span></label>
+              <textarea id="booking-requests" name="specialRequests" rows="4"></textarea>
+            </div>
+          </section>
+
+          <section class="booking-form-section" aria-labelledby="consent-heading">
+            <h2 id="consent-heading">4. Validation</h2>
+            <div class="reservation-form__field reservation-form__field--wide">
+              <label class="booking-consent" for="booking-consent">
+                <input id="booking-consent" name="consent" type="checkbox" required>
+                J’accepte les conditions relatives au traitement de ma demande.
+              </label>
+            </div>
+            <div class="booking-honeypot" aria-hidden="true">
+              <label for="booking-website">Ne pas remplir ce champ</label>
+              <input id="booking-website" name="website" type="text" tabindex="-1" autocomplete="off">
+            </div>
+            <div class="reservation-form__actions">
+              <button type="submit">Valider ma demande</button>
+            </div>
+          </section>
+        </form>
+
+        <form class="booking-selection" data-stay-selection aria-labelledby="selection-heading">
+          <h2 data-selection-heading id="selection-heading">Choisissez une chambre et vos dates</h2>
+          <p>Le lien de réservation est incomplet ou contient des dates invalides. Sélectionnez votre séjour ici pour continuer.</p>
+          <div class="reservation-form__field">
+            <label for="selection-room">Chambre</label>
+            <select id="selection-room" name="selectionRoom" required></select>
+          </div>
+          <div class="reservation-form__field">
+            <label for="selection-arrival">Date d’arrivée</label>
+            <input id="selection-arrival" name="arrivalDate" type="date" required>
+          </div>
+          <div class="reservation-form__field">
+            <label for="selection-departure">Date de départ</label>
+            <input id="selection-departure" name="departureDate" type="date" required>
+          </div>
+          <div class="reservation-form__actions">
+            <button type="submit" data-selection-submit>Mettre à jour le séjour</button>
+          </div>
+        </form>
+      </section>
+    </div>
+
+    <section class="booking-confirmation" data-reservation-confirmation tabindex="-1" aria-labelledby="confirmation-heading" hidden>
+      <h2 id="confirmation-heading">Récapitulatif de votre demande</h2>
+      <p><strong>Référence locale :</strong> <span data-confirmation-reference></span></p>
+      <p>Votre récapitulatif a été créé sur cet appareil. La demande n’a pas été envoyée et aucune chambre n’est réservée.</p>
+      <dl class="booking-summary" data-confirmation-summary></dl>
+    </section>
+  </main>
+
+  <a class="whatsapp-float" href="https://wa.me/22893541512" aria-label="Contacter Mary’s Guest House sur WhatsApp"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12.04 2a9.9 9.9 0 0 0-8.5 15l-1.3 4.7L7 20.4a9.9 9.9 0 1 0 5-18.4zm0 18.1a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-2.5.7.7-2.4-.2-.3a8.1 8.1 0 1 1 6.5 3.4zm4.5-6.1c-.2-.1-1.4-.7-1.6-.8s-.4-.1-.5.1-.6.7-.7.8-.3.2-.5.1a6.6 6.6 0 0 1-1.9-1.2 7.3 7.3 0 0 1-1.3-1.6c-.1-.2 0-.3.1-.4l.4-.5.2-.4v-.4c0-.1-.5-1.2-.7-1.6-.2-.4-.4-.3-.5-.3h-.5c-.2 0-.4.1-.6.3s-.8.8-.8 1.9.8 2.2.9 2.3a9.5 9.5 0 0 0 3.7 3.3c.5.2.8.3 1.1.4.5.2.9.1 1.2.1.4-.1 1.4-.6 1.6-1.1s.2-1 .1-1.1-.2-.2-.4-.3z"/></svg><span>WhatsApp</span></a>
+  <footer>
+    <p>Mary’s Guest House</p>
+    <nav aria-label="Navigation de pied de page">
+      <ul>
+        <li><a href="index.html">Accueil</a></li>
+        <li><a href="chambres.html">Chambres</a></li>
+        <li><a href="restaurant.html">Restaurant</a></li>
+        <li><a href="salle-conference.html">Salle de conférence</a></li>
+        <li><a href="galerie.html">Galerie</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+    </nav>
+    <p>
+      <a href="tel:+22893541512">93 54 15 12</a> ·
+      <a href="mailto:mary.guesth27@gmail.com">mary.guesth27@gmail.com</a>
+      <span class="social-links" role="group" aria-label="Réseaux sociaux">
+        <a href="https://www.instagram.com/marysguest?dlrf=MTlkYWlvZmk3bmdlYg==" target="_blank" rel="noopener noreferrer" aria-label="Instagram Mary’s Guest House"><svg class="social-links__instagram" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"></rect><circle cx="12" cy="12" r="4"></circle><circle cx="17.5" cy="6.5" r="1" class="social-links__dot"></circle></svg></a>
+        <a href="https://www.facebook.com/share/18gUENRZNx/?mibextid=wwXIfr" target="_blank" rel="noopener noreferrer" aria-label="Facebook Mary’s Guest House"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 21v-8h2.7l.4-3h-3.1V8.1c0-.9.3-1.5 1.6-1.5h1.7V3.9c-.3 0-1.3-.1-2.5-.1-2.5 0-4.2 1.5-4.2 4.3V10H7.3v3h2.8v8h3.4z"></path></svg></a>
+        <a href="https://www.tiktok.com/@marys.guest.house?_r=1&amp;_t=ZS-9BNZc6LJDSW" target="_blank" rel="noopener noreferrer" aria-label="TikTok Mary’s Guest House"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.59 6.69a4.79 4.79 0 0 1-3.77-4.25V2h-4v13.67a2.9 2.9 0 1 1-2.9-3.03 2.8 2.8 0 0 1 .86.13V8.7a6.8 6.8 0 0 0-.98-.07A6.9 6.9 0 1 0 15.8 15.5V9.1a8.6 8.6 0 0 0 5 1.6V6.8a4.8 4.8 0 0 1-1.21-.11z"></path></svg></a>
+      </span>
+    </p>
+    <p><a href="en/booking.html" lang="en">English</a></p>
+    <p>&copy; 2026 Mary’s Guest House</p>
+  </footer>
+</body>
+</html>

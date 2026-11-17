@@ -525,16 +525,7 @@ main > section[aria-labelledby="conference-gallery-heading"] li p {
   font-size: 1.12rem;
 }
 
-.booking-form__notice {
-  grid-column: 1 / -1;
-  padding: 0.85rem 1rem;
-  border-left: 3px solid var(--color-champagne);
-  background: rgb(198 161 91 / 12%);
-}
 
-.booking-form__notice[data-state="info"] {
-  border-left-color: #b65c57;
-}
 
 main > section[aria-labelledby="titre-chambres"] > a,
 main > section[aria-labelledby="rooms-heading"] > a,
@@ -1779,10 +1770,6 @@ main > section[aria-labelledby="restaurant-heading"] > ul > li > p {
     height: auto;
   }
 
-  #reservation-request .reservation-form {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
   .hero__actions {
     flex-direction: column;
     align-items: stretch;
@@ -1921,5 +1908,279 @@ main > section[aria-labelledby="restaurant-heading"] > ul > li > p {
 @media (max-width: 35rem) {
   #reservation-request .reservation-form {
     grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.currency-picker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--color-white);
+  font-size: 0.82rem;
+  font-weight: 650;
+}
+
+.currency-picker select {
+  min-height: 2.7rem;
+  max-width: 8.5rem;
+  padding: 0.45rem 0.55rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-small);
+  color: var(--color-white);
+  background: var(--color-surface);
+  font: inherit;
+}
+
+.currency-picker select:focus-visible,
+.booking-page input:focus-visible,
+.booking-page select:focus-visible,
+.booking-page textarea:focus-visible {
+  outline: 2px solid var(--color-champagne);
+  outline-offset: 2px;
+}
+
+.booking-page {
+  max-width: 76rem;
+  margin: 0 auto;
+  padding: clamp(1.25rem, 3vw, 2.5rem) var(--page-gutter) 4rem;
+}
+
+.booking-intro {
+  margin-bottom: 1.5rem;
+}
+
+.booking-intro h1 {
+  margin-bottom: 0.65rem;
+}
+
+.booking-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.booking-summary-card,
+.booking-form-panel,
+.booking-confirmation {
+  min-width: 0;
+  padding: clamp(1rem, 3vw, 1.5rem);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-large);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+}
+
+.booking-summary-card h2,
+.booking-form-section h2,
+.booking-confirmation h2,
+.booking-selection h2 {
+  margin-top: 0;
+}
+
+.booking-summary-card > img {
+  display: block;
+  width: 100%;
+  max-height: 18rem;
+  margin: 0 0 1rem;
+  border-radius: var(--radius-medium);
+  object-fit: cover;
+}
+
+.booking-summary-card > img[hidden] {
+  display: none;
+}
+
+.booking-summary-card > p,
+.booking-selection > p {
+  color: var(--color-muted);
+}
+
+.booking-page .reservation-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.booking-page .reservation-form[hidden] {
+  display: none;
+}
+
+.booking-form-section,
+.booking-selection {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.booking-form-section h2,
+.booking-form-section > p,
+.booking-form-section .reservation-form__field--wide,
+.booking-form-section .reservation-form__actions,
+.booking-form-section .booking-honeypot,
+.booking-selection h2,
+.booking-selection > p,
+.booking-selection .reservation-form__actions {
+  grid-column: 1 / -1;
+}
+
+.booking-page .reservation-form__field {
+  display: grid;
+  min-width: 0;
+  gap: 0.4rem;
+}
+
+.booking-page .reservation-form__field label {
+  color: var(--color-white);
+  font-size: 0.92rem;
+  font-weight: 650;
+}
+
+.booking-page input:not([type="checkbox"]),
+.booking-page select,
+.booking-page textarea {
+  width: 100%;
+  min-width: 0;
+  min-height: 2.9rem;
+  padding: 0.7rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-small);
+  color: var(--color-white);
+  background: var(--color-forest-deep);
+  font: inherit;
+}
+
+.booking-page textarea {
+  min-height: 7rem;
+  resize: vertical;
+}
+
+.booking-page .booking-consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+}
+
+.booking-page .booking-consent input {
+  width: 1.15rem;
+  height: 1.15rem;
+  flex: 0 0 auto;
+  margin-top: 0.15rem;
+  accent-color: var(--color-champagne);
+}
+
+.booking-page .reservation-form__actions {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.booking-page .reservation-form__actions button {
+  min-height: 3rem;
+  padding: 0.75rem 1.2rem;
+  border: 1px solid var(--color-champagne);
+  border-radius: var(--radius-small);
+  color: var(--color-white);
+  background: var(--color-forest);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.booking-page .reservation-form__actions button:hover {
+  background: var(--color-forest-deep);
+}
+
+.booking-page .reservation-form__actions button:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.booking-status,
+.booking-currency-note {
+  padding: 0.8rem 1rem;
+  border-left: 3px solid var(--color-champagne);
+  color: var(--color-white);
+  background: rgb(198 161 91 / 12%);
+}
+
+.booking-status[data-state="error"] {
+  border-left-color: #b65c57;
+  background: rgb(182 92 87 / 12%);
+}
+
+.booking-status[data-state="success"] {
+  border-left-color: #73ad83;
+}
+
+.booking-status:empty {
+  display: none;
+}
+
+.booking-selection {
+  border: 0;
+}
+
+.booking-honeypot {
+  position: fixed;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.booking-confirmation {
+  margin-top: 1.25rem;
+}
+
+.booking-confirmation[hidden],
+.booking-form-panel[hidden],
+.booking-selection[hidden] {
+  display: none;
+}
+
+.booking-confirmation:focus {
+  outline: 2px solid var(--color-champagne);
+  outline-offset: 3px;
+}
+
+@media (min-width: 48.01rem) {
+  .booking-layout {
+    grid-template-columns: minmax(0, 1.25fr) minmax(18rem, 0.75fr);
+    gap: 1.5rem;
+  }
+
+  .booking-summary-card {
+    grid-column: 2;
+    grid-row: 1;
+    position: sticky;
+    top: 6rem;
+  }
+
+  .booking-form-panel {
+    grid-column: 1;
+    grid-row: 1;
+  }
+}
+
+@media (max-width: 35rem) {
+  .booking-page .reservation-form,
+  .booking-form-section,
+  .booking-selection {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .booking-page .reservation-form__actions button {
+    width: 100%;
+  }
+
+  .currency-picker span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
   }
 }

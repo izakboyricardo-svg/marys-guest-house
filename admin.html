@@ -11,6 +11,7 @@
   <header class="admin-header">
     <a href="index.html" aria-label="Mary’s Guest House, accueil">Mary’s Guest House</a>
     <a href="index.html">Retour au site</a>
+    <a href="en/admin.html" lang="en">English</a>
   </header>
 
   <main class="admin-page" data-testimonials-admin>
@@ -23,6 +24,18 @@
     <aside class="admin-notice" role="note">
       Les données sont enregistrées dans le stockage local de ce navigateur. Elles ne sont ni protégées par un compte administrateur ni synchronisées avec les visiteurs ou d’autres appareils.
     </aside>
+
+    <section class="admin-login-preview" aria-labelledby="admin-login-heading">
+      <h2 id="admin-login-heading">Connexion administrateur (aperçu)</h2>
+      <p>Cette interface visuelle n’authentifie personne. La connexion devra être ajoutée avec Supabase Auth.</p>
+      <form>
+        <label for="admin-email-preview">E-mail</label>
+        <input id="admin-email-preview" type="email" autocomplete="username" disabled>
+        <label for="admin-password-preview">Mot de passe</label>
+        <input id="admin-password-preview" type="password" autocomplete="current-password" disabled>
+        <button type="button" disabled>Connexion non activée</button>
+      </form>
+    </section>
 
     <section class="admin-list-section" aria-labelledby="list-heading">
       <div class="admin-list-heading">
@@ -42,6 +55,7 @@
     <p><a href="index.html">Retour à l’accueil</a></p>
     <p>&copy; 2026 Mary’s Guest House</p>
   </footer>
+  <script src="js/data.js" defer></script>
   <script src="js/main.js" defer></script>
 </body>
 </html>

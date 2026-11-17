@@ -894,7 +894,392 @@ footer > p:last-child {
   body {
     font-size: 0.97rem;
   }
+}
 
+.room-detail-page {
+    width: min(var(--content-width), calc(100% - 2 * var(--page-gutter)));
+    margin: 0 auto;
+    padding-block: 2rem 6rem;
+  }
+
+.room-detail-layout {
+    display: grid;
+    gap: 1.5rem;
+  }
+
+.room-detail,
+  .room-detail__booking {
+    min-width: 0;
+    padding: clamp(1rem, 3vw, 2rem);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-medium);
+    background: var(--color-surface);
+    box-shadow: var(--shadow-card);
+  }
+
+.room-detail__main-image {
+    display: block;
+    width: 100%;
+    max-height: 36rem;
+    margin-block: 1.5rem;
+    border-radius: var(--radius-medium);
+    object-fit: cover;
+    cursor: zoom-in;
+  }
+
+.room-gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(9rem, 40vw), 1fr));
+    gap: 0.75rem;
+  }
+
+.room-gallery__item {
+    overflow: hidden;
+    padding: 0;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-small);
+    background: var(--color-surface);
+    cursor: zoom-in;
+  }
+
+.room-gallery__item img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+  }
+
+.room-amenities {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.85rem 1.25rem;
+    padding: 0;
+    list-style: none;
+  }
+
+.room-amenities li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+  }
+
+.room-amenities svg {
+    width: 1.4rem;
+    height: 1.4rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.6;
+  }
+
+.room-detail__booking {
+    align-self: start;
+  }
+
+.room-detail__booking form {
+    display: grid;
+    gap: 0.9rem;
+    margin-block: 1rem;
+  }
+
+.room-detail__booking label {
+    display: grid;
+    gap: 0.35rem;
+  }
+
+.room-detail__booking input,
+  .room-detail__booking button {
+    min-height: 2.8rem;
+    padding: 0.6rem 0.75rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-small);
+    font: inherit;
+  }
+
+.room-price {
+    color: var(--color-champagne);
+    font-size: 1.35rem;
+    font-weight: 750;
+  }
+
+.room-detail__booking > .button {
+    display: inline-flex;
+    min-height: 3rem;
+    align-items: center;
+    justify-content: center;
+    padding: 0.7rem 1rem;
+    border-radius: var(--radius-small);
+    color: var(--color-forest-deep);
+    background: var(--color-champagne);
+    font-weight: 750;
+    text-align: center;
+    text-decoration: none;
+  }
+
+.room-detail__booking a[aria-disabled="true"] {
+    opacity: 0.55;
+    pointer-events: none;
+  }
+
+  .room-booking-bar a[aria-disabled="true"] {
+    opacity: 0.55;
+    pointer-events: none;
+  }
+
+.room-lightbox {
+    width: min(94vw, 72rem);
+    max-width: 72rem;
+    max-height: 92vh;
+    padding: 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-medium);
+    color: var(--color-white);
+    background: var(--color-forest-deep);
+  }
+
+.room-lightbox::backdrop {
+    background: rgb(0 0 0 / 82%);
+  }
+
+.room-lightbox img {
+    display: block;
+    width: 100%;
+    max-height: 75vh;
+    object-fit: contain;
+    touch-action: pan-y;
+  }
+
+.room-lightbox button {
+    min-height: 2.7rem;
+    margin: 0.3rem;
+  }
+
+.room-lightbox p {
+    text-align: center;
+  }
+
+.room-booking-bar {
+    position: fixed;
+    z-index: 20;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: flex;
+    justify-content: center;
+    padding: 0.65rem 1rem;
+    background: var(--color-forest-deep);
+    box-shadow: 0 -4px 18px rgb(0 0 0 / 20%);
+  }
+
+.room-booking-bar a {
+    width: min(100%, 32rem);
+    min-height: 2.9rem;
+    display: grid;
+    place-items: center;
+    border-radius: var(--radius-small);
+    color: var(--color-forest-deep);
+    background: var(--color-champagne);
+    font-weight: 750;
+    text-decoration: none;
+  }
+
+.cookie-banner {
+    position: fixed;
+    z-index: 1200;
+    right: 1rem;
+    bottom: 1rem;
+    left: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    max-width: 70rem;
+    margin-inline: auto;
+    padding: 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-medium);
+    color: var(--color-white);
+    background: var(--color-forest-deep);
+    box-shadow: var(--shadow-card);
+  }
+
+.cookie-banner[hidden] {
+    display: none;
+  }
+
+.cookie-banner__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+.cookie-banner button {
+    min-height: 2.7rem;
+    padding: 0.5rem 0.8rem;
+    border: 1px solid var(--color-champagne);
+    border-radius: var(--radius-small);
+    color: var(--color-white);
+    background: transparent;
+    font: inherit;
+    cursor: pointer;
+  }
+
+.cookie-banner button:first-child {
+    color: var(--color-forest-deep);
+    background: var(--color-champagne);
+  }
+
+.site-page {
+    width: min(var(--content-width), calc(100% - 2 * var(--page-gutter)));
+    min-height: 55vh;
+    margin-inline: auto;
+    padding-block: 2.5rem 4rem;
+  }
+
+.site-page section,
+  .site-page .site-panel {
+    margin-block: 1.5rem;
+    padding: clamp(1rem, 3vw, 2rem);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-medium);
+    background: var(--color-surface);
+  }
+
+.site-page details {
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+.site-page summary {
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+.site-page [data-confirmation-required] {
+    font-weight: 700;
+  }
+
+.room-detail-layout {
+  display: grid;
+  gap: 1.5rem;
+}
+
+@media (min-width: 48.01rem) {
+  .room-detail-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(18rem, 0.38fr);
+    align-items: start;
+  }
+
+  .room-detail__booking {
+    position: sticky;
+    top: 1rem;
+  }
+
+  .room-booking-bar {
+    display: none;
+  }
+}
+
+.gallery-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-block: 1rem;
+  }
+
+.gallery-filters button {
+    min-height: 2.7rem;
+    padding: 0.5rem 0.9rem;
+    border: 1px solid var(--color-champagne);
+    border-radius: var(--radius-small);
+    color: var(--color-white);
+    background: var(--color-surface);
+    font: inherit;
+    cursor: pointer;
+  }
+
+.gallery-filters button[aria-pressed="true"] {
+    color: var(--color-forest-deep);
+    background: var(--color-champagne);
+  }
+
+.gallery-lightbox {
+    width: min(94vw, 72rem);
+    max-width: 72rem;
+    max-height: 92vh;
+    padding: 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-medium);
+    color: var(--color-white);
+    background: var(--color-forest-deep);
+  }
+
+.gallery-lightbox::backdrop {
+    background: rgb(0 0 0 / 82%);
+  }
+
+.gallery-lightbox img {
+    display: block;
+    width: 100%;
+    max-height: 75vh;
+    object-fit: contain;
+    cursor: default;
+  }
+
+.gallery-lightbox button {
+    min-height: 2.7rem;
+    margin: 0.3rem;
+  }
+
+.gallery-lightbox p {
+    text-align: center;
+  }
+
+.room-detail-page [data-room-error]:empty {
+    display: none;
+  }
+
+.room-detail-page [data-room-error]:not(:empty) {
+    padding: 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-small);
+  }
+
+.admin-login-preview {
+    margin-block: 1.5rem;
+    padding: 1.25rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-medium);
+    background: var(--color-surface);
+  }
+
+.admin-login-preview form {
+    display: grid;
+    gap: 0.65rem;
+    max-width: 32rem;
+  }
+
+.admin-login-preview input,
+  .admin-login-preview button {
+    min-height: 2.8rem;
+    padding: 0.55rem 0.75rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-small);
+    font: inherit;
+  }
+
+.directions-map {
+    display: block;
+    width: 100%;
+    min-height: 18rem;
+    margin-block: 1rem;
+    border: 0;
+    border-radius: var(--radius-medium);
+  }
+
+@media (max-width: 35rem) {
   main > section {
     padding-block: 3.25rem;
   }

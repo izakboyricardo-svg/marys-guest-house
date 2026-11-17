@@ -185,6 +185,17 @@
         pending: "Request pending",
         reserved: "Reserved",
       };
+  const amenityLabels = isFrench
+    ? { wifi: "Wi-Fi", hotWater: "Eau chaude", airConditioning: "Climatisation", television: "Télévision" }
+    : { wifi: "Wi-Fi", hotWater: "Hot water", airConditioning: "Air conditioning", television: "Television" };
+  const amenityIcons = {
+    wifi: '<path d="M2 8.8a15 15 0 0 1 20 0M5.5 12.3a10 10 0 0 1 13 0M9 15.8a5 5 0 0 1 6 0M12 19h.01"/>',
+    hotWater: '<path d="M7 3c0 2-2 2-2 4s2 2 2 4m5-8c0 2-2 2-2 4s2 2 2 4m5-8c0 2-2 2-2 4s2 2 2 4M4 14h16v7H4z"/>',
+    airConditioning: '<path d="M12 2v20M4.93 4.93l14.14 14.14M2 12h20M4.93 19.07 19.07 4.93"/>',
+    television: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m8 2 4 3 4-3m-8 17v3m8-3v3"/>',
+  };
+  const roomName = (room) => isFrench ? room.nameFr : room.nameEn;
+  const roomImagePath = (image) => `${isFrench ? "" : "../"}assets/images/${image}`;
 
   document.querySelectorAll("[data-room-listing]").forEach((listing) => {
     const query = new URLSearchParams(location.search);
@@ -202,17 +213,65 @@
       : tr("chooseStay");
     listing.prepend(status);
 
+    const cardList = listing.querySelector("[data-room-cards]");
+    if (cardList) {
+      cardList.replaceChildren(...Object.entries(config.rooms).map(([id, room]) => {
+        const card = document.createElement("li");
+        card.dataset.roomId = id;
+        const image = document.createElement("img");
+        image.src = roomImagePath(room.image);
+        image.width = 900;
+        image.height = 600;
+        image.alt = isFrench ? room.imageAltFr : room.imageAltEn;
+        image.loading = "lazy";
+        image.decoding = "async";
+        const heading = document.createElement("h3");
+        heading.textContent = roomName(room);
+        const description = document.createElement("p");
+        description.textContent = isFrench ? room.descriptionFr : room.descriptionEn;
+        const amenities = document.createElement("ul");
+        amenities.className = "room-amenities";
+        amenities.setAttribute("aria-label", isFrench ? "Équipements disponibles" : "Available amenities");
+        room.amenities.forEach((amenity) => {
+          const item = document.createElement("li");
+          const icon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+          icon.setAttribute("viewBox", "0 0 24 24");
+          icon.setAttribute("aria-hidden", "true");
+          icon.setAttribute("focusable", "false");
+          icon.innerHTML = amenityIcons[amenity];
+          const label = document.createElement("span");
+          label.textContent = amenityLabels[amenity];
+          item.append(icon, label);
+          amenities.append(item);
+        });
+        const details = document.createElement("a");
+        details.className = "room-details-cta";
+        details.href = `${isFrench ? "chambre.html" : "room.html"}?room=${encodeURIComponent(id)}${hasValidStay ? `&arrivalDate=${encodeURIComponent(arrival)}&departureDate=${encodeURIComponent(departure)}` : ""}`;
+        details.textContent = isFrench ? "Voir les détails" : "View room details";
+        details.setAttribute("aria-label", isFrench ? `Voir les détails de ${roomName(room)}` : `View details for ${roomName(room)}`);
+        const booking = document.createElement("a");
+        booking.className = "room-cta";
+        booking.href = "#";
+        booking.textContent = isFrench ? "Réserver cette chambre" : "Book This Room";
+        card.append(image, heading, description, amenities, details, booking);
+        return card;
+      }));
+    }
+
     listing.querySelectorAll(":scope > ul > li").forEach((card) => {
       const heading = card.querySelector("h3");
       const link = card.querySelector(".room-cta");
       if (!heading || !link) return;
-      const roomNumber = heading.textContent.match(/\b(20[1-9]|21[0-2])\b/)?.[1];
-      if (!roomNumber) return;
-      const roomId = `room-${roomNumber}`;
+      const roomId = card.dataset.roomId;
+      if (!roomId) return;
+      const roomDetail = config.rooms[roomId];
+      heading.textContent = roomName(roomDetail);
       const room = config.rooms[roomId];
       if (!room) return;
       const pricing = config.pricing[room.pricingKey];
-      const availability = card.dataset.availability || "unverified";
+      const availability = card.dataset.availability
+        || window.MGH_DATA?.getAvailability(roomId, arrival, departure).status
+        || "unverified";
       const cannotRequest = ["unavailable", "occupied", "pending", "reserved"].includes(availability);
       const renderPricing = () => {
         const quote = hasValidStay ? priceFor(roomId, arrival, departure) : null;
@@ -234,6 +293,10 @@
         if (room.capacity) {
           const capacity = document.createElement("p");
           capacity.textContent = `${isFrench ? "Capacité" : "Capacity"} : ${room.capacity}`;
+          info.append(capacity);
+        } else {
+          const capacity = document.createElement("p");
+          capacity.textContent = isFrench ? "Capacité à confirmer" : "Capacity to be confirmed";
           info.append(capacity);
         }
         if (currency !== "XOF") {
@@ -356,11 +419,11 @@
   const updateSummary = () => {
     const quote = priceFor(roomSelect.value, arrivalField.value, departureField.value);
     const selected = config.rooms[roomSelect.value];
-    fields.room.textContent = selected?.name || "—";
+    fields.room.textContent = selected ? roomName(selected) : "—";
     fields.image.hidden = !selected;
     if (selected) {
       fields.image.src = `${isFrench ? "" : "../"}assets/images/${selected.image}`;
-      fields.image.alt = selected.name;
+      fields.image.alt = isFrench ? selected.imageAltFr : selected.imageAltEn;
     }
     fields.nights.textContent = quote ? String(quote.nights) : "—";
     fields.rate.textContent = quote ? `${formatMoney(quote.pricing.nightlyRate)} / ${isFrench ? "nuit" : "night"}` : "—";
@@ -401,7 +464,7 @@
     && requestedArrival >= todayString()
     && requestedDeparture > requestedArrival;
 
-  Object.entries(config.rooms).forEach(([id, room]) => roomSelect.add(new Option(room.name, id)));
+  Object.entries(config.rooms).forEach(([id, room]) => roomSelect.add(new Option(roomName(room), id)));
   if (hasCompleteStay) {
     roomSelect.value = requestedRoom;
     arrivalField.value = requestedArrival;
@@ -445,16 +508,6 @@
     formPanel.scrollIntoView({ behavior: "smooth", block: "start" });
   });
 
-  const referenceFor = () => {
-    const date = todayString().replaceAll("-", "");
-    const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-    const randomBytes = new Uint8Array(4);
-    if (window.crypto?.getRandomValues) window.crypto.getRandomValues(randomBytes);
-    else randomBytes.set(Array.from({ length: 4 }, () => Math.floor(Math.random() * 256)));
-    return `MGH-${date}-${[...randomBytes].map((byte) => alphabet[byte % alphabet.length]).join("")}`;
-  };
-  const submitReservation = async (data) => Promise.resolve({ reference: referenceFor(), localOnly: true, data });
-
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
     if (!form.reportValidity()) return;
@@ -497,7 +550,7 @@
     const quote = priceFor(roomSelect.value, arrivalField.value, departureField.value);
     const data = {
       roomId: roomSelect.value,
-      roomName: room.name,
+      roomName: roomName(room),
       arrivalDate: arrivalField.value,
       departureDate: departureField.value,
       nights: quote.nights,
@@ -523,17 +576,23 @@
     submitButton.setAttribute("aria-busy", "true");
     setStatus(tr("loading"), "loading");
     try {
-      const result = await submitReservation(data);
+      const result = await window.MGH_DATA.submitReservation(data);
       form.hidden = true;
       confirmation.hidden = false;
       confirmation.querySelector("[data-confirmation-reference]").textContent = result.reference;
       const summary = confirmation.querySelector("[data-confirmation-summary]");
+      const adultLabel = isFrench
+        ? data.adults === 1 ? "adulte" : "adultes"
+        : data.adults === 1 ? "adult" : "adults";
+      const childLabel = isFrench
+        ? data.children === 1 ? "enfant" : "enfants"
+        : data.children === 1 ? "child" : "children";
       const rows = [
         [tr("room"), data.roomName],
         [tr("arrival"), formatDate(data.arrivalDate)],
         [tr("departure"), formatDate(data.departureDate)],
         [tr("nights"), String(data.nights)],
-        [tr("guests"), `${data.adults} ${tr("adults").toLowerCase()}${data.children ? `, ${data.children} ${tr("children").toLowerCase()}` : ""}`],
+        [tr("guests"), `${data.adults} ${adultLabel}${data.children ? `, ${data.children} ${childLabel}` : ""}`],
         [tr("nightlyRate"), formatMoney(data.nightlyRateXof)],
         [tr("total"), data.displayedTotal],
         [tr("firstName"), data.firstName],

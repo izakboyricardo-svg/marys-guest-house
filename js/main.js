@@ -51,18 +51,14 @@ ensureMeta("name", "twitter:description", pageDescription);
 
 const siteRoutes = isFrenchSite
   ? [
-      ["Tarifs et conditions", "tarifs.html"],
       ["Équipements et accès", "services.html"],
-      ["FAQ", "faq.html"],
     ]
   : [
-      ["Rates and terms", "rates.html"],
       ["Facilities and directions", "services.html"],
-      ["FAQ", "faq.html"],
     ];
 const policyRoutes = isFrenchSite
-  ? [["Mentions légales", "mentions-legales.html"], ["Confidentialité", "confidentialite.html"], ["Cookies", "cookies.html"]]
-  : [["Legal notice", "legal-notice.html"], ["Privacy", "privacy.html"], ["Cookies", "cookies.html"]];
+  ? [["Confidentialité", "confidentialite.html"], ["Cookies", "cookies.html"]]
+  : [["Privacy", "privacy.html"], ["Cookies", "cookies.html"]];
 const footerRoutes = [...siteRoutes, ...policyRoutes];
 const routeHref = (file) => `${isEnglishDirectory ? "" : isFrenchSite ? "" : "../"}${file}`;
 

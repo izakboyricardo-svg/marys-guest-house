@@ -15,6 +15,11 @@
         capacity: "Capacité",
         capacityUnknown: "À confirmer auprès de l’établissement",
         nightly: "nuit",
+        availabilityChecking: "Vérification de la disponibilité…",
+        availabilityAvailable: "Disponible pour les dates choisies.",
+        availabilityOccupied: "Occupée pour les dates choisies.",
+        availabilityUnavailable: "Cette chambre n’est pas disponible pour ces dates.",
+        availabilityError: "La disponibilité n’a pas pu être vérifiée. Réessayez.",
         from: "À partir de",
         amenities: "Équipements et services",
         gallery: "Photos des espaces d’hébergement",
@@ -34,6 +39,11 @@
         capacity: "Capacity",
         capacityUnknown: "Please confirm with the property",
         nightly: "night",
+        availabilityChecking: "Checking availability…",
+        availabilityAvailable: "Available for the selected dates.",
+        availabilityOccupied: "Occupied for the selected dates.",
+        availabilityUnavailable: "This room is unavailable for those dates.",
+        availabilityError: "Availability could not be checked. Please try again.",
         from: "From",
         amenities: "Amenities and services",
         gallery: "Guest accommodation photos",
@@ -152,6 +162,11 @@
   const searchForm = page.querySelector("[data-room-date-form]");
   const arrival = searchForm.elements.arrivalDate;
   const departure = searchForm.elements.departureDate;
+  const availabilityMessage = document.createElement("p");
+  availabilityMessage.className = "form-status";
+  availabilityMessage.setAttribute("role", "status");
+  availabilityMessage.setAttribute("aria-live", "polite");
+  searchForm.after(availabilityMessage);
   const today = new Date();
   const todayString = [today.getFullYear(), String(today.getMonth() + 1).padStart(2, "0"), String(today.getDate()).padStart(2, "0")].join("-");
   arrival.min = todayString;
@@ -166,6 +181,22 @@
   bookingBarLink.textContent = labels.reserve;
   bookingBar.append(bookingBarLink);
   page.append(bookingBar);
+  let availabilityState = null;
+  let availabilityRequest = 0;
+  const setReservationLinksDisabled = (disabled) => {
+    [reserve, bookingBarLink].forEach((link) => {
+      link.setAttribute("aria-disabled", String(disabled));
+      if (disabled) link.setAttribute("tabindex", "-1");
+      else link.removeAttribute("tabindex");
+    });
+  };
+  [reserve, bookingBarLink].forEach((link) => {
+    link.addEventListener("click", (event) => {
+      if (link.getAttribute("aria-disabled") === "true") {
+        event.preventDefault();
+      }
+    });
+  });
   const updateBookingLink = () => {
     departure.min = arrival.value || arrival.min;
     const languageLink = document.querySelector("header > a[lang]");
@@ -185,24 +216,70 @@
       url.searchParams.set("departureDate", departure.value);
       reserve.href = url.href;
       bookingBarLink.href = url.href;
-      reserve.removeAttribute("aria-disabled");
-      reserve.removeAttribute("tabindex");
-      bookingBarLink.removeAttribute("aria-disabled");
-      bookingBarLink.removeAttribute("tabindex");
+      setReservationLinksDisabled(availabilityState !== "available");
     } else {
       reserve.href = `${url.pathname}?room=${encodeURIComponent(roomId)}`;
       bookingBarLink.href = reserve.href;
       if (arrival.value || departure.value) {
-        reserve.setAttribute("aria-disabled", "true");
-        reserve.setAttribute("tabindex", "-1");
-        bookingBarLink.setAttribute("aria-disabled", "true");
-        bookingBarLink.setAttribute("tabindex", "-1");
+        setReservationLinksDisabled(true);
       } else {
-        reserve.removeAttribute("aria-disabled");
-        reserve.removeAttribute("tabindex");
-        bookingBarLink.removeAttribute("aria-disabled");
-        bookingBarLink.removeAttribute("tabindex");
+        setReservationLinksDisabled(false);
       }
+    }
+  };
+  const checkAvailability = async () => {
+    const requestId = ++availabilityRequest;
+    const validStay =
+      arrival.value >= todayString &&
+      departure.value > arrival.value;
+
+    if (!validStay) {
+      availabilityState = null;
+      availabilityMessage.textContent = "";
+      updateBookingLink();
+      return;
+    }
+
+    availabilityState = "checking";
+    availabilityMessage.textContent = labels.availabilityChecking;
+    updateBookingLink();
+
+    try {
+      const result = await window.MGH_DATA.getAvailability(
+        roomId,
+        arrival.value,
+        departure.value
+      );
+
+      if (requestId !== availabilityRequest) return;
+
+      availabilityState = result.status;
+      availabilityMessage.textContent =
+        labels[
+          result.status === "available"
+            ? "availabilityAvailable"
+            : result.status === "occupied"
+              ? "availabilityOccupied"
+              : "availabilityUnavailable"
+        ];
+
+      if (Number.isInteger(result.nightlyRateXof) && result.nightlyRateXof > 0) {
+        pricing.nightlyRate = result.nightlyRateXof;
+        renderRate();
+      }
+      if (Number.isInteger(result.capacity) && result.capacity > 0) {
+        room.capacity = result.capacity;
+        text("[data-room-capacity]", String(result.capacity));
+      }
+
+      updateBookingLink();
+    } catch (error) {
+      if (requestId !== availabilityRequest) return;
+
+      console.error("Could not verify room availability.", error);
+      availabilityState = "error";
+      availabilityMessage.textContent = labels.availabilityError;
+      updateBookingLink();
     }
   };
   text("[data-date-arrival-label]", labels.arrival);
@@ -211,6 +288,7 @@
   [arrival, departure].forEach((field) => field.addEventListener("input", () => {
     departure.setCustomValidity("");
     updateBookingLink();
+    checkAvailability();
   }));
   searchForm.addEventListener("submit", (event) => {
     event.preventDefault();
@@ -221,8 +299,9 @@
     }
     departure.setCustomValidity("");
     updateBookingLink();
+    checkAvailability();
   });
-  updateBookingLink();
+  checkAvailability();
 
   const gallery = page.querySelector("[data-room-gallery]");
   const dialog = page.querySelector("[data-room-lightbox]");

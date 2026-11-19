@@ -46,8 +46,8 @@
   <main id="contenu-principal" class="booking-page" data-reservation-page>
     <section class="booking-intro" aria-labelledby="booking-title">
       <p class="eyebrow">VOTRE SÉJOUR</p>
-      <h1 id="booking-title">Finaliser votre demande de réservation</h1>
-      <p>Vérifiez votre séjour, puis renseignez les informations nécessaires. La disponibilité sera confirmée par l’établissement.</p>
+      <h1 id="booking-title">Finaliser votre réservation</h1>
+      <p>Vérifiez votre séjour, puis renseignez les informations nécessaires. Votre réservation est confirmée automatiquement lorsque la chambre est disponible. Le paiement s’effectue directement à l’établissement.</p>
       <p class="booking-status" data-reservation-status role="status" aria-live="polite"></p>
     </section>
 
@@ -57,6 +57,7 @@
         <img data-summary-image alt="" loading="lazy" decoding="async" hidden>
         <p class="booking-summary__title" data-summary-room>—</p>
         <p data-summary-capacity></p>
+        <p data-stay-availability role="status" aria-live="polite"></p>
         <div class="reservation-form__field">
           <label for="summary-arrival">Date d’arrivée</label>
           <input id="summary-arrival" name="arrivalDate" type="date" form="reservation-form" required>
@@ -142,7 +143,7 @@
               <input id="booking-website" name="website" type="text" tabindex="-1" autocomplete="off">
             </div>
             <div class="reservation-form__actions">
-              <button type="submit">Valider ma demande</button>
+              <button type="submit">Confirmer la réservation</button>
             </div>
           </section>
         </form>
@@ -170,9 +171,9 @@
     </div>
 
     <section class="booking-confirmation" data-reservation-confirmation tabindex="-1" aria-labelledby="confirmation-heading" hidden>
-      <h2 id="confirmation-heading">Récapitulatif de votre demande</h2>
-      <p><strong>Référence de demande :</strong> <span data-confirmation-reference></span></p>
-      <p>Votre demande sera enregistrée après son envoi. Elle restera en attente de confirmation par l’établissement.</p>
+      <h2 id="confirmation-heading">Réservation confirmée</h2>
+      <p><strong>Référence de réservation :</strong> <span data-confirmation-reference></span></p>
+      <p>Votre chambre est réservée pour les dates indiquées. Le paiement sera effectué directement à l’établissement; aucun paiement en ligne n’est demandé.</p>
       <dl class="booking-summary" data-confirmation-summary></dl>
     </section>
   </main>

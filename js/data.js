@@ -1,30 +1,6 @@
 (() => {
   "use strict";
 
-  const reservationReference = () => {
-    const now = new Date();
-    const date = [
-      now.getFullYear(),
-      String(now.getMonth() + 1).padStart(2, "0"),
-      String(now.getDate()).padStart(2, "0"),
-    ].join("");
-
-    const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-    const bytes = new Uint8Array(4);
-
-    if (window.crypto?.getRandomValues) {
-      window.crypto.getRandomValues(bytes);
-    } else {
-      bytes.set(
-        Array.from({ length: 4 }, () => Math.floor(Math.random() * 256))
-      );
-    }
-
-    return `MGH-${date}-${[...bytes]
-      .map((byte) => alphabet[byte % alphabet.length])
-      .join("")}`;
-  };
-
   const readTestimonials = () => {
     const saved = localStorage.getItem("marysGuestHouseTestimonials");
     if (!saved) return [];
@@ -38,30 +14,63 @@
     return testimonials;
   };
 
+  const getClient = () => {
+    if (!window.MGH_SUPABASE) {
+      throw new Error("Supabase is not initialized.");
+    }
+
+    return window.MGH_SUPABASE;
+  };
+
   window.MGH_DATA = {
-    getAvailability(roomId, checkIn, checkOut) {
+    async getAvailability(roomId, checkIn, checkOut) {
       if (!window.MGH_CONFIG?.rooms?.[roomId]) {
         throw new RangeError("Unknown room identifier.");
       }
 
-      // La disponibilité réelle sera connectée dans une étape séparée.
+      if (!checkIn || !checkOut || checkOut <= checkIn) {
+        return {
+          roomId,
+          checkIn,
+          checkOut,
+          status: "unavailable",
+          verified: false,
+        };
+      }
+
+      const { data, error } = await getClient().rpc(
+        "get_room_availability",
+        {
+          p_room_id: roomId,
+          p_check_in: checkIn,
+          p_check_out: checkOut,
+        }
+      );
+
+      if (error) {
+        console.error("Supabase availability error:", error);
+        throw error;
+      }
+
+      if (!data || !["available", "occupied", "unavailable"].includes(data.status)) {
+        throw new Error("The availability service returned an invalid response.");
+      }
+
       return {
         roomId,
         checkIn,
         checkOut,
-        status: "unverified",
-        verified: false,
-        message: "Availability is not yet verified by the booking system.",
+        status: data.status,
+        verified: true,
+        nightlyRateXof:
+          data.nightly_rate_xof == null
+            ? null
+            : Number(data.nightly_rate_xof),
+        capacity: data.capacity == null ? null : Number(data.capacity),
       };
     },
 
     async submitReservation(data) {
-      const client = window.MGH_SUPABASE;
-
-      if (!client) {
-        throw new Error("Supabase is not initialized.");
-      }
-
       if (!data || !window.MGH_CONFIG?.rooms?.[data.roomId]) {
         throw new Error("Invalid room selection.");
       }
@@ -74,38 +83,48 @@
         throw new Error("Invalid reservation dates.");
       }
 
-      const reference = reservationReference();
-
-      const reservation = {
-        reference,
-        room_id: data.roomId,
-        check_in: data.arrivalDate,
-        check_out: data.departureDate,
-        adults: Number(data.adults),
-        children: Number(data.children),
-        first_name: data.firstName.trim(),
-        last_name: data.lastName.trim(),
-        email: (data.email || "").trim(),
-        phone: data.phone.trim(),
-        country: data.country || null,
-        arrival_time: data.estimatedArrivalTime || null,
-        notes: data.specialRequests || null,
-      };
-
-      const { error } = await client
-        .from("reservations")
-        .insert(reservation);
+      const { data: result, error } = await getClient().rpc(
+        "create_confirmed_reservation",
+        {
+          p_room_id: data.roomId,
+          p_check_in: data.arrivalDate,
+          p_check_out: data.departureDate,
+          p_adults: Number(data.adults),
+          p_children: Number(data.children),
+          p_first_name: data.firstName.trim(),
+          p_last_name: data.lastName.trim(),
+          p_email: (data.email || "").trim(),
+          p_phone: data.phone.trim(),
+          p_country: data.country || null,
+          p_arrival_time: data.estimatedArrivalTime || null,
+          p_notes: data.specialRequests || null,
+        }
+      );
 
       if (error) {
         console.error("Supabase reservation error:", error);
         throw error;
       }
 
+      if (
+        !result ||
+        result.status !== "confirmed" ||
+        !result.reference ||
+        !Number.isInteger(Number(result.nightly_rate_xof)) ||
+        !Number.isInteger(Number(result.total_xof)) ||
+        !Number.isInteger(Number(result.nights))
+      ) {
+        throw new Error("The reservation service returned an invalid confirmation.");
+      }
+
       return {
-        reference,
+        reference: result.reference,
         submitted: true,
         localOnly: false,
-        status: "pending",
+        status: result.status,
+        nightlyRateXof: Number(result.nightly_rate_xof),
+        totalXof: Number(result.total_xof),
+        nights: Number(result.nights),
         data,
       };
     },

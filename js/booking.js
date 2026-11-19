@@ -14,13 +14,13 @@
     ? {
         currency: "Devise",
         indicative: `Montant indicatif, facturation en FCFA. Taux de référence : ${config.currency.updatedOn}.`,
-        capacityUnknown: "Capacité non renseignée ; à confirmer auprès de l’établissement.",
+        capacityUnknown: "Capacité maximale : 2 personnes.",
         invalidStay: "Vérifiez la chambre et choisissez une arrivée future et un départ postérieur.",
         chooseStay: "Choisissez une chambre et des dates valides pour continuer.",
         loading: "Envoi en cours…",
-        submit: "Valider ma demande",
-        success: "Votre demande a bien été transmise et enregistrée. Elle est en attente de confirmation par l’établissement. Aucune réservation n’est encore confirmée.",
-        requestReference: "Référence de votre demande",
+        submit: "Confirmer la réservation",
+        success: "Votre réservation est confirmée. Le paiement sera effectué directement à l’établissement.",
+        requestReference: "Référence de réservation",
         room: "Chambre",
         arrival: "Arrivée",
         departure: "Départ",
@@ -46,19 +46,25 @@
         selection: "Choisissez une chambre et vos dates",
         continue: "Mettre à jour le séjour",
         unavailable: "Cette chambre n’est plus disponible pour ces dates. Choisissez d’autres dates ou une autre chambre.",
+        availabilityChecking: "Vérification de la disponibilité…",
+        availabilityAvailable: "Disponible pour les dates choisies.",
+        availabilityOccupied: "Occupée pour les dates choisies.",
+        availabilityUnavailable: "Cette chambre n’est pas réservable pour ces dates.",
+        availabilityError: "La disponibilité n’a pas pu être vérifiée. Réessayez.",
+        paymentAtProperty: "Le paiement sera effectué directement à l’établissement. Aucun paiement en ligne n’est demandé.",
         connectionError: "Impossible de contacter le système de réservation. Vérifiez votre connexion et réessayez.",
         genericError: "Une erreur est survenue. Vérifiez les informations et réessayez.",
       }
     : {
         currency: "Currency",
         indicative: `Indicative amount; billing is in XOF. Reference rates: ${config.currency.updatedOn}.`,
-        capacityUnknown: "Capacity not provided; please confirm with the property.",
+        capacityUnknown: "Maximum room capacity: 2 guests.",
         invalidStay: "Check the room and choose a future check-in date and a later check-out date.",
         chooseStay: "Choose a room and valid dates to continue.",
         loading: "Submitting…",
-        submit: "Submit my request",
-        success: "Your request has been submitted and saved. It is awaiting confirmation from the property. No booking is confirmed yet.",
-        requestReference: "Your request reference",
+        submit: "Confirm booking",
+        success: "Your booking is confirmed. Payment will be made directly at the property.",
+        requestReference: "Booking reference",
         room: "Room",
         arrival: "Check-in",
         departure: "Check-out",
@@ -84,6 +90,12 @@
         selection: "Choose a room and your dates",
         continue: "Update stay",
         unavailable: "This room is no longer available for these dates. Choose different dates or another room.",
+        availabilityChecking: "Checking availability…",
+        availabilityAvailable: "Available for the selected dates.",
+        availabilityOccupied: "Occupied for the selected dates.",
+        availabilityUnavailable: "This room cannot be booked for these dates.",
+        availabilityError: "Availability could not be checked. Please try again.",
+        paymentAtProperty: "Payment will be made directly at the property. No online payment is required.",
         connectionError: "Could not contact the booking system. Check your connection and try again.",
         genericError: "An error occurred. Check the information and try again.",
       };
@@ -244,20 +256,24 @@
 
   const availabilityLabels = isFrench
     ? {
-        unverified: "Disponibilité à confirmer par l’établissement",
-        available: "Disponible (statut de démonstration, à confirmer)",
-        unavailable: "Indisponible",
-        occupied: "Déjà occupée",
-        pending: "Demande en attente",
-        reserved: "Réservée",
+        unverified: "Choisissez des dates pour vérifier la disponibilité.",
+        checking: "Vérification de la disponibilité…",
+        available: "Disponible pour les dates choisies.",
+        unavailable: "Non disponible pour les dates choisies.",
+        occupied: "Occupée pour les dates choisies.",
+        pending: "Réservation en attente",
+        reserved: "Réservation confirmée",
+        error: "Disponibilité impossible à vérifier.",
       }
     : {
-        unverified: "Availability to be confirmed by the property",
-        available: "Available (demo status, subject to confirmation)",
-        unavailable: "Unavailable",
-        occupied: "Already occupied",
-        pending: "Request pending",
-        reserved: "Reserved",
+        unverified: "Choose dates to check availability.",
+        checking: "Checking availability…",
+        available: "Available for the selected dates.",
+        unavailable: "Unavailable for the selected dates.",
+        occupied: "Occupied for the selected dates.",
+        pending: "Reservation pending",
+        reserved: "Reservation confirmed",
+        error: "Availability could not be checked.",
       };
 
   const amenityLabels = isFrench
@@ -303,8 +319,8 @@
 
     status.textContent = hasValidStay
       ? isFrench
-        ? `Dates demandées : du ${formatDate(arrival)} au ${formatDate(departure)} (${getNightCount(arrival, departure)} nuit(s)). Disponibilité à confirmer par l’établissement.`
-        : `Requested dates: ${formatDate(arrival)} to ${formatDate(departure)} (${getNightCount(arrival, departure)} night(s)). Availability must be confirmed by the property.`
+        ? `Dates demandées : du ${formatDate(arrival)} au ${formatDate(departure)} (${getNightCount(arrival, departure)} nuit(s)). Consultez la disponibilité vérifiée de chaque chambre ci-dessous.`
+        : `Requested dates: ${formatDate(arrival)} to ${formatDate(departure)} (${getNightCount(arrival, departure)} night(s)). See each room’s verified availability below.`
       : tr("chooseStay");
 
     listing.prepend(status);
@@ -402,17 +418,9 @@
       const room = config.rooms[roomId];
       const pricing = config.pricing[room.pricingKey];
 
-      const availability =
-        card.dataset.availability ||
-        window.MGH_DATA?.getAvailability(roomId, arrival, departure).status ||
-        "unverified";
-
-      const cannotRequest = [
-        "unavailable",
-        "occupied",
-        "pending",
-        "reserved",
-      ].includes(availability);
+      let availability = hasValidStay
+        ? "checking"
+        : card.dataset.availability || "unverified";
 
       const renderPricing = () => {
         const quote = hasValidStay
@@ -421,6 +429,7 @@
 
         const info = document.createElement("div");
         info.className = "room-booking-info";
+        info.dataset.roomBookingInfo = "";
 
         const rate = document.createElement("p");
         rate.className = "room-booking-info__rate";
@@ -438,6 +447,7 @@
         info.append(estimate);
 
         const statusText = document.createElement("p");
+        statusText.className = "room-booking-info__availability";
         statusText.textContent =
           availabilityLabels[availability] || availabilityLabels.unverified;
         info.append(statusText);
@@ -487,14 +497,50 @@
         ? "Réserver cette chambre"
         : "Book This Room";
 
-      link.setAttribute("aria-disabled", String(cannotRequest));
-      link.classList.toggle("is-disabled", cannotRequest);
+      const setLinkAvailability = (state) => {
+        const cannotRequest = [
+          "checking",
+          "error",
+          "unavailable",
+          "occupied",
+          "pending",
+          "reserved",
+        ].includes(state);
 
-      if (cannotRequest) {
-        link.setAttribute("tabindex", "-1");
-        link.addEventListener("click", (event) => event.preventDefault());
-      } else {
-        link.removeAttribute("tabindex");
+        link.setAttribute("aria-disabled", String(cannotRequest));
+        link.classList.toggle("is-disabled", cannotRequest);
+
+        if (cannotRequest) link.setAttribute("tabindex", "-1");
+        else link.removeAttribute("tabindex");
+      };
+
+      link.addEventListener("click", (event) => {
+        if (link.getAttribute("aria-disabled") === "true") {
+          event.preventDefault();
+        }
+      });
+
+      setLinkAvailability(availability);
+
+      if (hasValidStay) {
+        window.MGH_DATA.getAvailability(roomId, arrival, departure)
+          .then((result) => {
+            availability = result.status;
+            if (Number.isInteger(result.nightlyRateXof) && result.nightlyRateXof > 0) {
+              pricing.nightlyRate = result.nightlyRateXof;
+            }
+            if (Number.isInteger(result.capacity) && result.capacity > 0) {
+              room.capacity = result.capacity;
+            }
+            renderPricing();
+            setLinkAvailability(availability);
+          })
+          .catch((error) => {
+            console.error("Could not check room availability.", error);
+            availability = "error";
+            renderPricing();
+            setLinkAvailability(availability);
+          });
       }
     });
   });
@@ -518,6 +564,10 @@
   const consentField = bookingPage.querySelector("[name='consent']");
   const currencySelect = document.querySelector("[data-currency-select]");
   const confirmation = bookingPage.querySelector("[data-reservation-confirmation]");
+  const availabilityStatus = bookingPage.querySelector("[data-stay-availability]");
+  const submitButton = form.querySelector("[type='submit']");
+  let currentAvailability = null;
+  let availabilityRequest = 0;
 
   const fields = {
     room: bookingPage.querySelector("[data-summary-room]"),
@@ -612,6 +662,11 @@
     status.dataset.state = state;
   };
 
+  const setAvailabilityStatus = (message, state = "") => {
+    availabilityStatus.textContent = message;
+    availabilityStatus.dataset.state = state;
+  };
+
   const updateDateMinimums = () => {
     arrivalField.min = todayString();
     departureField.min = arrivalField.value || todayString();
@@ -673,9 +728,72 @@
     fields.currencyNote.textContent = tr("indicative");
   };
 
+  const refreshAvailability = async () => {
+    const requestId = ++availabilityRequest;
+    currentAvailability = null;
+
+    if (
+      !config.rooms[roomSelect.value] ||
+      !validDate(arrivalField.value) ||
+      !validDate(departureField.value) ||
+      arrivalField.value < todayString() ||
+      departureField.value <= arrivalField.value
+    ) {
+      setAvailabilityStatus("");
+      submitButton.disabled = true;
+      return;
+    }
+
+    setAvailabilityStatus(tr("availabilityChecking"), "loading");
+    submitButton.disabled = true;
+
+    try {
+      const result = await window.MGH_DATA.getAvailability(
+        roomSelect.value,
+        arrivalField.value,
+        departureField.value
+      );
+
+      if (requestId !== availabilityRequest) return;
+
+      currentAvailability = result;
+      const selected = config.rooms[roomSelect.value];
+      const pricing = config.pricing[selected.pricingKey];
+
+      if (Number.isInteger(result.nightlyRateXof) && result.nightlyRateXof > 0) {
+        pricing.nightlyRate = result.nightlyRateXof;
+      }
+
+      if (Number.isInteger(result.capacity) && result.capacity > 0) {
+        selected.capacity = result.capacity;
+      }
+
+      const messageKey = {
+        available: "availabilityAvailable",
+        occupied: "availabilityOccupied",
+        unavailable: "availabilityUnavailable",
+      }[result.status];
+
+      setAvailabilityStatus(
+        messageKey ? tr(messageKey) : tr("availabilityError"),
+        result.status === "available" ? "success" : "error"
+      );
+      updateSummary();
+      submitButton.disabled = result.status !== "available";
+    } catch (error) {
+      if (requestId !== availabilityRequest) return;
+
+      console.error("Could not verify the selected room availability.", error);
+      currentAvailability = { status: "error" };
+      setAvailabilityStatus(tr("availabilityError"), "error");
+      submitButton.disabled = true;
+    }
+  };
+
   [arrivalField, departureField, roomSelect].forEach((field) => {
     field.addEventListener("change", updateDateMinimums);
     field.addEventListener("input", updateDateMinimums);
+    field.addEventListener("change", refreshAvailability);
   });
 
   document.addEventListener("mgh-currency-change", (event) => {
@@ -788,6 +906,7 @@
 
     setStatus("", "");
     updateDateMinimums();
+    refreshAvailability();
 
     formPanel.scrollIntoView({
       behavior: "smooth",
@@ -904,8 +1023,6 @@
       consent: consentField.checked,
     };
 
-    const submitButton = form.querySelector("[type='submit']");
-
     submitButton.disabled = true;
     submitButton.textContent = tr("loading");
     submitButton.setAttribute("aria-busy", "true");
@@ -925,6 +1042,11 @@
       if (!result || !result.submitted || !result.reference) {
         throw new Error("The reservation was not saved.");
       }
+
+      data.nights = result.nights;
+      data.nightlyRateXof = result.nightlyRateXof;
+      data.totalXof = result.totalXof;
+      data.displayedTotal = formatMoney(result.totalXof);
 
       form.hidden = true;
       confirmation.hidden = false;
@@ -980,6 +1102,10 @@
         })
       );
 
+      const paymentNote = document.createElement("p");
+      paymentNote.textContent = tr("paymentAtProperty");
+      summary.after(paymentNote);
+
       setStatus(
         `${tr("success")} ${tr("requestReference")}: ${result.reference}`,
         "success"
@@ -1001,6 +1127,14 @@
         errorMessage.includes("conflict");
 
       if (isConflict) {
+        currentAvailability = { status: "occupied" };
+        setAvailabilityStatus(tr("availabilityOccupied"), "error");
+        setStatus(tr("unavailable"), "error");
+      } else if (error?.code === "23514" && errorMessage.includes("capacity")) {
+        setStatus(tr("capacityExceeded"), "error");
+      } else if (errorMessage.includes("not active")) {
+        currentAvailability = { status: "unavailable" };
+        setAvailabilityStatus(tr("availabilityUnavailable"), "error");
         setStatus(tr("unavailable"), "error");
       } else if (
         !navigator.onLine ||
@@ -1013,7 +1147,7 @@
       }
     } finally {
       if (confirmation.hidden) {
-        submitButton.disabled = false;
+        submitButton.disabled = currentAvailability?.status !== "available";
         submitButton.textContent = tr("submit");
         submitButton.removeAttribute("aria-busy");
       }
@@ -1022,4 +1156,5 @@
 
   roomSelect.value = hasCompleteStay ? requestedRoom : "";
   updateDateMinimums();
+  if (hasCompleteStay) refreshAvailability();
 })();

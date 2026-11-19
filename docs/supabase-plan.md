@@ -1,51 +1,65 @@
-# Supabase preparation plan
+# Supabase booking setup
 
-This is a future implementation outline only. It creates no Supabase project, tables, policies, keys, or network calls. The browser code must never contain a `service_role` secret.
+The automatic booking flow uses the existing `rooms`, `reservations`,
+`settings`, and `testimonials` tables. Apply
+[`../supabase/automatic-booking.sql`](../supabase/automatic-booking.sql) once
+in the Supabase SQL Editor using an authorized project administrator account.
+The migration does not require a service-role key in the website.
 
-## Recommended tables
+## What the migration changes
 
-### `rooms`
+- Sets the maximum capacity of the existing rooms to two guests and makes the
+  capacity required for future room records.
+- Changes `set_reservation_defaults()` so inserted reservations are validated,
+  priced from `rooms.price_xof`, and confirmed automatically.
+- Adds `get_room_availability()` for a public, date-based availability result
+  without exposing guest information.
+- Adds `create_confirmed_reservation()` as the atomic booking operation. It
+  locks the room, checks its active state, capacity and dates, calculates the
+  server-side total, and inserts a confirmed reservation with a unique
+  reference.
+- Keeps the existing GiST exclusion constraint on pending and confirmed
+  reservations. The room lock also serializes simultaneous booking attempts.
+- Removes existing policies on the four application tables and installs
+  least-privilege policies. Anonymous clients can only read active rooms,
+  check availability, create reservations through the RPC, submit pending
+  testimonials, and read approved testimonials. Only the configured owner can
+  manage rooms, reservations, settings, and testimonials.
+- Registers owner UUID
+  `5a2a8c93-4305-48d6-a91f-1fac189bfbef` in the protected
+  `mgh_booking_admins` table. The user must already exist in Supabase Auth.
 
-- `id text primary key` — stable identifiers such as `room-209`.
-- `name_fr text not null`, `name_en text not null`.
-- `nightly_rate_xof integer not null check (nightly_rate_xof >= 0)`.
-- `capacity integer null check (capacity is null or capacity > 0)`.
-- `active boolean not null default true`.
-- `created_at timestamptz not null default now()`, `updated_at timestamptz not null default now()`.
+## Booking and cancellation rules
 
-The static website configuration remains the current source until an authorized migration to a database is planned.
+- Check-out is exclusive: another stay can begin on the same date.
+- Only pending and confirmed reservations block dates. Cancelled reservations
+  no longer block a stay; the existing exclusion constraint remains intact.
+- Dates before the database's current date, inactive rooms and groups over
+  two guests are rejected by the database.
+- The database room price is authoritative. The browser only displays an
+  estimate; the confirmed total is recalculated from `price_xof` and the
+  number of nights in PostgreSQL.
+- Payment is collected at the property. No payment credentials or service-role
+  keys are used in the browser.
+- To cancel a reservation, the owner must set its `status` to `cancelled`
+  through an authenticated owner session. The reservation website does not
+  expose a public cancellation operation.
 
-### `reservations`
+## Verification after applying the migration
 
-- `id uuid primary key default gen_random_uuid()`.
-- `reference text not null unique`.
-- `room_id text not null references rooms(id)`.
-- `check_in date not null`, `check_out date not null check (check_out > check_in)`.
-- `adults integer not null check (adults > 0)`, `children integer not null default 0 check (children >= 0)`.
-- `first_name text not null`, `last_name text not null`, `email text`, `phone text not null`, `country_code text`.
-- `estimated_arrival_time time`, `special_requests text`.
-- `status text not null check (status in ('pending','confirmed','cancelled','rejected'))`.
-- `nightly_rate_xof integer not null`, `nights integer not null check (nights > 0)`, `total_xof integer not null check (total_xof >= 0)`.
-- `created_at timestamptz not null default now()`, `updated_at timestamptz not null default now()`.
+1. Confirm all 12 existing rooms have `capacity = 2`.
+2. Confirm `reservations_room_id_daterange_excl` still exists.
+3. Confirm an anonymous client cannot insert directly into `reservations` or
+   read reservation rows, and an ordinary authenticated user cannot manage
+   application tables.
+4. Call `get_room_availability()` for free, overlapping, inactive and
+   check-out-boundary date ranges.
+5. Submit two simultaneous overlapping requests for the same room: only one
+   should be confirmed. Retry after cancelling the first reservation.
+6. Confirm the returned price and total equal the room's XOF rate multiplied
+   by the number of nights.
+7. Test both language pages and mobile/desktop layouts.
 
-Use database-side transactions / a PostgreSQL exclusion constraint over room and date ranges (or an equivalent locked transaction) to prevent overlapping active reservations. Client-side checks are only for usability and are not an availability guarantee. A pending request should not be presented as confirmed.
-
-### `testimonials`
-
-- `id uuid primary key default gen_random_uuid()`.
-- `first_name text not null`, `rating smallint not null check (rating between 1 and 5)`.
-- `comment_fr text`, `comment_en text`.
-- `status text not null check (status in ('pending','published','hidden','rejected')) default 'pending'`.
-- `created_at timestamptz not null default now()`, `moderated_at timestamptz`, `moderated_by uuid`.
-
-## Access control and operational flow
-
-- Enable RLS on every table.
-- Public clients may read only active room catalogue data and published testimonials.
-- Public clients may create reservation requests and pending testimonials through narrowly scoped policies or, preferably, an Edge Function with server-side validation and rate limiting. Public users must not update reservation status or publish testimonials.
-- Restrict reservation/customer data to authorized staff; never expose it through broad public `select` policies.
-- Staff sign-in should use Supabase Auth and least-privilege roles. Keep all privileged secrets in server/Edge Function secrets.
-- Send owner notifications from a trusted server/Edge Function after a successful database transaction; do not put email credentials in the browser.
-- Record cancellation through a controlled server action, update status transactionally, and make cancelled dates available only after the transaction succeeds.
-- Validate capacity, rates, date ranges, promotion calculations, and double-booking rules on the server/database, not only in JavaScript.
-- Add retention and deletion procedures for personal information before collecting real customer data.
+The migration updates database permissions and functions only when it is
+executed in Supabase. Until then, the website changes alone cannot make
+automatic booking live.

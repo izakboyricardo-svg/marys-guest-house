@@ -46,8 +46,8 @@
   <main id="main-content" class="booking-page" data-reservation-page>
     <section class="booking-intro" aria-labelledby="booking-title">
       <p class="eyebrow">YOUR STAY</p>
-      <h1 id="booking-title">Complete your booking request</h1>
-      <p>Review your stay and provide the necessary information. The property will confirm availability.</p>
+      <h1 id="booking-title">Complete your booking</h1>
+      <p>Review your stay and provide the necessary information. Your booking is confirmed automatically when the room is available. Payment is made directly at the property.</p>
       <p class="booking-status" data-reservation-status role="status" aria-live="polite"></p>
     </section>
 
@@ -57,6 +57,7 @@
         <img data-summary-image alt="" loading="lazy" decoding="async" hidden>
         <p class="booking-summary__title" data-summary-room>—</p>
         <p data-summary-capacity></p>
+        <p data-stay-availability role="status" aria-live="polite"></p>
         <div class="reservation-form__field">
           <label for="summary-arrival">Check-in date</label>
           <input id="summary-arrival" name="arrivalDate" type="date" form="reservation-form" required>
@@ -142,7 +143,7 @@
               <input id="booking-website" name="website" type="text" tabindex="-1" autocomplete="off">
             </div>
             <div class="reservation-form__actions">
-              <button type="submit">Submit my request</button>
+              <button type="submit">Confirm booking</button>
             </div>
           </section>
         </form>
@@ -170,9 +171,9 @@
     </div>
 
     <section class="booking-confirmation" data-reservation-confirmation tabindex="-1" aria-labelledby="confirmation-heading" hidden>
-      <h2 id="confirmation-heading">Your booking request summary</h2>
-      <p><strong>Request reference:</strong> <span data-confirmation-reference></span></p>
-      <p>Your request has been submitted and recorded. It is awaiting confirmation by the property. Your room is not yet confirmed.</p>
+      <h2 id="confirmation-heading">Booking confirmed</h2>
+      <p><strong>Booking reference:</strong> <span data-confirmation-reference></span></p>
+      <p>Your room is reserved for the selected dates. Payment will be made directly at the property; no online payment is required.</p>
       <dl class="booking-summary" data-confirmation-summary></dl>
     </section>
   </main>

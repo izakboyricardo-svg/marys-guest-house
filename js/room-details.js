@@ -24,6 +24,11 @@
         amenities: "Équipements et services",
         gallery: "Photos des espaces d’hébergement",
         galleryNote: "Les photos disponibles ne sont pas toutes identifiées chambre par chambre.",
+        occupiedTitle: "Périodes déjà réservées",
+        occupiedEmpty: "Aucune réservation prévue pour le moment.",
+        occupiedLoading: "Chargement des périodes réservées…",
+        occupiedError: "Les périodes réservées ne peuvent pas être chargées pour le moment.",
+        occupiedRange: (checkIn, checkOut) => `Occupée du ${checkIn} au ${checkOut}.`,
         arrival: "Date d’arrivée",
         departure: "Date de départ",
         reserve: "Réserver cette chambre",
@@ -48,6 +53,11 @@
         amenities: "Amenities and services",
         gallery: "Guest accommodation photos",
         galleryNote: "The available photos are not all identified room by room.",
+        occupiedTitle: "Already booked dates",
+        occupiedEmpty: "No bookings scheduled at the moment.",
+        occupiedLoading: "Loading booked dates…",
+        occupiedError: "Booked dates could not be loaded right now.",
+        occupiedRange: (checkIn, checkOut) => `Occupied from ${checkIn} to ${checkOut}.`,
         arrival: "Check-in date",
         departure: "Check-out date",
         reserve: "Book This Room",
@@ -115,6 +125,22 @@
   text("[data-room-description]", isFrench ? room.descriptionFr : room.descriptionEn);
   text("[data-room-capacity-label]", labels.capacity);
   text("[data-room-capacity]", room.capacity ? String(room.capacity) : labels.capacityUnknown);
+  const occupiedDateFormatter = new Intl.DateTimeFormat(locale, {
+    day: "numeric",
+    month: "long",
+    timeZone: "UTC",
+  });
+  const occupiedSection = document.createElement("section");
+  occupiedSection.className = "room-occupied-periods";
+  occupiedSection.setAttribute("aria-labelledby", "room-occupied-heading");
+  const occupiedHeading = document.createElement("h2");
+  occupiedHeading.id = "room-occupied-heading";
+  occupiedHeading.textContent = labels.occupiedTitle;
+  const occupiedContent = document.createElement("div");
+  occupiedContent.setAttribute("role", "status");
+  occupiedContent.setAttribute("aria-live", "polite");
+  occupiedContent.textContent = labels.occupiedLoading;
+  occupiedSection.append(occupiedHeading, occupiedContent);
   const renderRate = () => {
     text("[data-room-rate]", `${pricing.rateType === "from" ? `${labels.from} ` : ""}${formatMoney(pricing.nightlyRate)} / ${labels.nightly}`);
     const note = page.querySelector("[data-room-currency-note]");
@@ -160,6 +186,39 @@
   });
 
   const searchForm = page.querySelector("[data-room-date-form]");
+  page.querySelector(".room-detail__booking").insertBefore(
+    occupiedSection,
+    searchForm
+  );
+  window.MGH_DATA.getOccupiedPeriods()
+    .then((periods) => {
+      const roomPeriods = periods.filter((period) => period.roomId === roomId);
+      occupiedContent.replaceChildren();
+
+      if (roomPeriods.length === 0) {
+        occupiedContent.textContent = labels.occupiedEmpty;
+        return;
+      }
+
+      const list = document.createElement("ul");
+      roomPeriods.forEach((period) => {
+        const checkIn = occupiedDateFormatter.format(
+          new Date(`${period.checkIn}T00:00:00Z`)
+        );
+        const checkOut = occupiedDateFormatter.format(
+          new Date(`${period.checkOut}T00:00:00Z`)
+        );
+        const item = document.createElement("li");
+        item.textContent = labels.occupiedRange(checkIn, checkOut);
+        list.append(item);
+      });
+      occupiedContent.append(list);
+    })
+    .catch((error) => {
+      console.error("Could not load occupied room periods.", error);
+      occupiedContent.textContent = labels.occupiedError;
+    });
+
   const arrival = searchForm.elements.arrivalDate;
   const departure = searchForm.elements.departureDate;
   const availabilityMessage = document.createElement("p");

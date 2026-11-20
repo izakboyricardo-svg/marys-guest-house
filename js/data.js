@@ -70,6 +70,39 @@
       };
     },
 
+    async getOccupiedPeriods() {
+      const { data, error } = await getClient().rpc(
+        "get_occupied_room_periods"
+      );
+
+      if (error) {
+        console.error("Supabase occupied periods error:", error);
+        throw error;
+      }
+
+      if (!Array.isArray(data)) {
+        throw new Error("The occupied periods service returned an invalid response.");
+      }
+
+      return data.map((period) => {
+        if (
+          !period ||
+          !window.MGH_CONFIG?.rooms?.[period.room_id] ||
+          !/^\d{4}-\d{2}-\d{2}$/.test(period.check_in || "") ||
+          !/^\d{4}-\d{2}-\d{2}$/.test(period.check_out || "") ||
+          period.check_out <= period.check_in
+        ) {
+          throw new Error("The occupied periods service returned invalid dates.");
+        }
+
+        return {
+          roomId: period.room_id,
+          checkIn: period.check_in,
+          checkOut: period.check_out,
+        };
+      });
+    },
+
     async submitReservation(data) {
       if (!data || !window.MGH_CONFIG?.rooms?.[data.roomId]) {
         throw new Error("Invalid room selection.");

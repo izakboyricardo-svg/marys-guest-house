@@ -14,6 +14,10 @@ The migration does not require a service-role key in the website.
   priced from `rooms.price_xof`, and confirmed automatically.
 - Adds `get_room_availability()` for a public, date-based availability result
   without exposing guest information.
+- Adds `get_occupied_room_periods()` in the separate
+  [`../supabase/occupied-room-periods.sql`](../supabase/occupied-room-periods.sql)
+  script. It returns only room IDs and future/ongoing check-in and check-out
+  dates for pending and confirmed reservations; it does not grant table access.
 - Adds `create_confirmed_reservation()` as the atomic booking operation. It
   locks the room, checks its active state, capacity and dates, calculates the
   server-side total, and inserts a confirmed reservation with a unique
@@ -54,11 +58,13 @@ The migration does not require a service-role key in the website.
    application tables.
 4. Call `get_room_availability()` for free, overlapping, inactive and
    check-out-boundary date ranges.
-5. Submit two simultaneous overlapping requests for the same room: only one
+5. Call `get_occupied_room_periods()` anonymously and confirm the response
+  contains only room IDs and dates, with no cancelled or past reservations.
+6. Submit two simultaneous overlapping requests for the same room: only one
    should be confirmed. Retry after cancelling the first reservation.
-6. Confirm the returned price and total equal the room's XOF rate multiplied
+7. Confirm the returned price and total equal the room's XOF rate multiplied
    by the number of nights.
-7. Test both language pages and mobile/desktop layouts.
+8. Test both language pages and mobile/desktop layouts.
 
 The migration updates database permissions and functions only when it is
 executed in Supabase. Until then, the website changes alone cannot make

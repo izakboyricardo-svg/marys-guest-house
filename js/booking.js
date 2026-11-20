@@ -45,7 +45,7 @@
         honeypot: "La demande n’a pas pu être traitée.",
         selection: "Choisissez une chambre et vos dates",
         continue: "Mettre à jour le séjour",
-        unavailable: "Cette chambre n’est plus disponible pour ces dates. Choisissez d’autres dates ou une autre chambre.",
+        unavailable: "Désolé, cette chambre n'est plus disponible pour les dates sélectionnées. Veuillez choisir d'autres dates ou une autre chambre.",
         availabilityChecking: "Vérification de la disponibilité…",
         availabilityAvailable: "Disponible pour les dates choisies.",
         availabilityOccupied: "Occupée pour les dates choisies.",
@@ -89,7 +89,7 @@
         honeypot: "The request could not be processed.",
         selection: "Choose a room and your dates",
         continue: "Update stay",
-        unavailable: "This room is no longer available for these dates. Choose different dates or another room.",
+        unavailable: "Sorry, this room is no longer available for the selected dates. Please choose different dates or another room.",
         availabilityChecking: "Checking availability…",
         availabilityAvailable: "Available for the selected dates.",
         availabilityOccupied: "Occupied for the selected dates.",
@@ -249,6 +249,12 @@
     timeZone: "UTC",
   });
 
+  const occupiedDateFormatter = new Intl.DateTimeFormat(locale, {
+    day: "numeric",
+    month: "long",
+    timeZone: "UTC",
+  });
+
   const formatDate = (date) =>
     dateFormatter.format(new Date(`${date}T00:00:00Z`));
 
@@ -394,7 +400,28 @@
             ? "Réserver cette chambre"
             : "Book This Room";
 
-          card.append(image, heading, description, amenities, details, booking);
+          const occupiedPeriods = document.createElement("section");
+          occupiedPeriods.className = "room-occupied-periods";
+          occupiedPeriods.dataset.roomOccupiedPeriods = "";
+
+          const occupiedHeading = document.createElement("h4");
+          occupiedHeading.textContent = isFrench
+            ? "Périodes déjà réservées"
+            : "Already booked dates";
+
+          const occupiedContent = document.createElement("div");
+          occupiedContent.dataset.occupiedContent = "";
+
+          occupiedPeriods.append(occupiedHeading, occupiedContent);
+          card.append(
+            image,
+            heading,
+            description,
+            amenities,
+            details,
+            booking,
+            occupiedPeriods
+          );
 
           return card;
         })
@@ -543,6 +570,73 @@
           });
       }
     });
+
+    const renderOccupiedPeriods = (section, periods, state) => {
+      const content = section.querySelector("[data-occupied-content]");
+      content.replaceChildren();
+
+      if (state === "loading") {
+        content.textContent = isFrench
+          ? "Chargement des périodes réservées…"
+          : "Loading booked dates…";
+        return;
+      }
+
+      if (state === "error") {
+        content.textContent = isFrench
+          ? "Les périodes réservées ne peuvent pas être chargées pour le moment."
+          : "Booked dates could not be loaded right now.";
+        return;
+      }
+
+      if (periods.length === 0) {
+        content.textContent = isFrench
+          ? "Aucune réservation prévue pour le moment."
+          : "No bookings scheduled at the moment.";
+        return;
+      }
+
+      const list = document.createElement("ul");
+      periods.forEach((period) => {
+        const item = document.createElement("li");
+        const checkIn = occupiedDateFormatter.format(
+          new Date(`${period.checkIn}T00:00:00Z`)
+        );
+        const checkOut = occupiedDateFormatter.format(
+          new Date(`${period.checkOut}T00:00:00Z`)
+        );
+        item.textContent = isFrench
+          ? `Occupée du ${checkIn} au ${checkOut}.`
+          : `Occupied from ${checkIn} to ${checkOut}.`;
+        list.append(item);
+      });
+      content.append(list);
+    };
+
+    const occupiedSections = [
+      ...listing.querySelectorAll("[data-room-occupied-periods]"),
+    ];
+    occupiedSections.forEach((section) =>
+      renderOccupiedPeriods(section, [], "loading")
+    );
+
+    window.MGH_DATA.getOccupiedPeriods()
+      .then((periods) => {
+        occupiedSections.forEach((section) => {
+          const roomId = section.closest("[data-room-id]")?.dataset.roomId;
+          renderOccupiedPeriods(
+            section,
+            periods.filter((period) => period.roomId === roomId),
+            "loaded"
+          );
+        });
+      })
+      .catch((error) => {
+        console.error("Could not load occupied room periods.", error);
+        occupiedSections.forEach((section) =>
+          renderOccupiedPeriods(section, [], "error")
+        );
+      });
   });
 
   const bookingPage = document.querySelector("[data-reservation-page]");
